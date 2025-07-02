@@ -1,6 +1,6 @@
 import React from 'react'
-
-export default function Order() {
+import'./Order.css'
+export default function Order({url}) {
   return (
     <div>Order</div>
   )

@@ -1,22 +1,19 @@
-<<<<<<< HEAD
+
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
-=======
->>>>>>> 1d19cf2e4aef50b5c2a15b8dd9f272058e10459b
+
 *{
   margin:0;
   padding:0;
   box-sizing: border-box;
-<<<<<<< HEAD
+
   font-family: Outfit;
   scroll-behavior: smooth;
-=======
->>>>>>> 1d19cf2e4aef50b5c2a15b8dd9f272058e10459b
+
 }
 body{
   min-height: 100vh;
 }
 a{
-<<<<<<< HEAD
   text-decoration: none;
   color: inherit;
 }
@@ -31,8 +28,5 @@ a{
   100%{
     opacity: 1;
   }
-=======
-  text-decoration:none;
-  color: inherit;
->>>>>>> 1d19cf2e4aef50b5c2a15b8dd9f272058e10459b
+
 }

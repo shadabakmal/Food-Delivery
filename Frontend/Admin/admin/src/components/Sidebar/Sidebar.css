@@ -22,6 +22,10 @@
     padding: 8px 10px;
     cursor: pointer;
 }
+.active{
+    border-color: tomato;
+    background-color: rgb(232, 234, 235);
+}
 @media (max-width:900px){
     .sidebar-option p{
         display: none;
