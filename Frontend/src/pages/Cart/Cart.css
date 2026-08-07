@@ -269,11 +269,11 @@
 
 .address-card {
   border: 1px solid #e2e8f0;
-  padding: 18px;
+  padding: 20px;
   background: white;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   position: relative;
   cursor: pointer;
 }
@@ -281,6 +281,77 @@
 .address-card.selected {
   border-color: #60b246;
   box-shadow: 0 4px 14px rgba(96, 178, 70, 0.15);
+}
+
+/* Screenshot 2 Add New Address Card Styling */
+.add-new-card-swiggy {
+  border: 1px dashed #cbd5e1 !important;
+  background: white;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+}
+
+.add-new-card-swiggy:hover {
+  border-color: #60b246 !important;
+}
+
+.add-new-header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.location-plus-icon-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plus-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: #2a9d8f;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-new-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.add-new-btn-wrapper {
+  margin-top: 16px;
+}
+
+.swiggy-add-new-outline-btn {
+  border: 1px solid #60b246;
+  color: #60b246;
+  background: white;
+  padding: 10px 24px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.swiggy-add-new-outline-btn:hover {
+  background: #60b246;
+  color: white;
 }
 
 .addr-icon {
@@ -316,17 +387,6 @@
 
 .deliver-here-btn.active {
   background: #60b246;
-}
-
-.add-new-btn {
-  border: 1px dashed #60b246;
-  color: #60b246;
-  background: white;
-  padding: 10px;
-  font-weight: 800;
-  font-size: 12px;
-  cursor: pointer;
-  margin-top: 10px;
 }
 
 /* Right Sidebar Order Summary */

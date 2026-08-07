@@ -16,7 +16,6 @@ export default function ItemAddedBar() {
       <div className="swiggy-item-added-bar">
         <div className="item-count-text">
           <span>{count} {count === 1 ? 'item' : 'items'} added</span>
-          <span className="cart-total-preview">| ₹{getTotalCartAmount()}</span>
         </div>
         <button className="view-cart-btn" onClick={() => navigate('/cart')}>
           VIEW CART <ShoppingBag size={18} />

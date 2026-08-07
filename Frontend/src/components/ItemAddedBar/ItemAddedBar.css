@@ -3,10 +3,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 999;
+  z-index: 9999;
   background: #60b246;
   color: white;
-  padding: 12px 24px;
+  padding: 14px 30px;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
   animation: slideUpBar 0.3s ease-out;
 }
@@ -27,17 +27,8 @@
 
 .item-count-text {
   font-size: 16px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  letter-spacing: 0.2px;
-}
-
-.cart-total-preview {
-  opacity: 0.9;
-  font-weight: 600;
-  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
 }
 
 .view-cart-btn {
@@ -50,10 +41,10 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   transition: transform 0.2s ease;
 }
 
 .view-cart-btn:hover {
-  transform: translateX(3px);
+  transform: scale(1.05);
 }

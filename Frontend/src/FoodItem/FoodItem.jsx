@@ -12,7 +12,10 @@ export default function FoodItem({ id, name, description, image, price, rating, 
     if (!image) return assets.food_1;
     if (typeof image === 'object') return image;
     if (typeof image === 'string') {
-      if (image.startsWith('http') || image.startsWith('data:')) return image;
+      if (image.startsWith('http') || image.startsWith('data:') || image.startsWith('/')) return image;
+      if (assets[image]) return assets[image];
+      const cleanKey = image.replace('.png', '').replace('.jpg', '');
+      if (assets[cleanKey]) return assets[cleanKey];
       return url + 'images/' + image;
     }
     return assets.food_1;
@@ -20,7 +23,9 @@ export default function FoodItem({ id, name, description, image, price, rating, 
 
   const handleImageError = (e) => {
     e.target.onerror = null;
-    e.target.src = assets.food_1;
+    // Extract ID number or default to food_1
+    const foodNum = (parseInt(id) % 32) + 1;
+    e.target.src = assets[`food_${foodNum}`] || assets.food_1;
   };
 
   const itemRating = rating || "4.8";

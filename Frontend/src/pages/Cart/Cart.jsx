@@ -331,10 +331,18 @@ export default function Cart({ setShowLogin }) {
                     </div>
                   ))}
 
-                  {/* Add New Address Trigger Card */}
-                  <div className="address-card add-new" onClick={() => setShowAddressModal(true)}>
-                    <div className="addr-icon"><Plus size={20} color="#60b246" /> <strong>Add New Address</strong></div>
-                    <button className="add-new-btn">+ ADD NEW</button>
+                  {/* Add New Address Trigger Card (Screenshot 2) */}
+                  <div className="address-card add-new-card-swiggy" onClick={() => setShowAddressModal(true)}>
+                    <div className="add-new-header-row">
+                      <div className="location-plus-icon-badge">
+                        <MapPin size={22} color="#0f172a" />
+                        <span className="plus-badge">+</span>
+                      </div>
+                      <span className="add-new-title">Add New Address</span>
+                    </div>
+                    <div className="add-new-btn-wrapper">
+                      <button className="swiggy-add-new-outline-btn">ADD NEW</button>
+                    </div>
                   </div>
                 </div>
               )}
