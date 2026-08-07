@@ -15,16 +15,17 @@ const formattedDefaultList = default_food_list.map((item, index) => ({
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
   const [token, setToken] = useState("");
-  const [userName, setUserName] = useState(localStorage.getItem("userName") || "Shadab Akmal");
+  const [userName, setUserName] = useState(localStorage.getItem("userName") || "");
   const [food_list, setFoodList] = useState(formattedDefaultList);
   const [searchTerm, setSearchTerm] = useState("");
-  const url = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/").replace(/\/?$/, '/');
+
+  // Default to deployed backend URL if env variable is not set
+  const url = (import.meta.env.VITE_BACKEND_URL || "https://food-delivery-backend-psi-lac.vercel.app/").replace(/\/?$/, '/');
 
   const fetchFoodList = async () => {
     try {
       const response = await axios.get(url + "api/food/list");
       if (response.data.success && response.data.data.length > 0) {
-        // Merge backend items with default items if needed, ensuring pictures & INR pricing
         const apiItems = response.data.data.map((item, idx) => ({
           ...item,
           price: item.price < 50 ? item.price * 15 : item.price,
@@ -32,7 +33,6 @@ const StoreContextProvider = (props) => {
           reviews: item.reviews || 85 + idx * 12
         }));
         
-        // Combine API items with default items so menu is always full & rich
         const combined = [...apiItems];
         formattedDefaultList.forEach(defItem => {
           if (!combined.some(apiItem => apiItem.name.toLowerCase() === defItem.name.toLowerCase())) {
@@ -126,8 +126,10 @@ const StoreContextProvider = (props) => {
     async function loadData() {
       await fetchFoodList();
       const savedToken = localStorage.getItem("token");
+      const savedName = localStorage.getItem("userName");
       if (savedToken) {
         setToken(savedToken);
+        if (savedName) setUserName(savedName);
         await loadCartData(savedToken);
       }
     }

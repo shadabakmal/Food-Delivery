@@ -233,7 +233,7 @@ export default function Cart({ setShowLogin }) {
                 <div className="navbar-profile-dropdown-wrapper">
                   <div className="profile-icon-pill">
                     <User size={18} />
-                    <span className="user-name-text">{userName || "Shadab Akmal"}</span>
+                    <span className="user-name-text">{userName || "User"}</span>
                   </div>
                   <ul className="nav-profile-dropdown-menu">
                     <li onClick={() => navigate('/myorders')}>
@@ -291,7 +291,7 @@ export default function Cart({ setShowLogin }) {
               <div className="navbar-profile-dropdown-wrapper">
                 <div className="profile-icon-pill">
                   <User size={18} />
-                  <span className="user-name-text">{userName || "Shadab Akmal"}</span>
+                  <span className="user-name-text">{userName || "User"}</span>
                 </div>
                 <ul className="nav-profile-dropdown-menu">
                   <li onClick={() => navigate('/myorders')}>
@@ -324,7 +324,7 @@ export default function Cart({ setShowLogin }) {
                     <h3>Logged in</h3>
                     <CheckCircle2 color="#2a9d8f" size={20} />
                   </div>
-                  <p className="user-info-text">{userName || "Shadab Akmal"} | Logged In</p>
+                  <p className="user-info-text">{userName || "User"} | Logged In</p>
                 </div>
               ) : (
                 <div className="account-prompt-box">
