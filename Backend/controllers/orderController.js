@@ -2,7 +2,15 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModels.js";
 import Stripe from "stripe";
 
-const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+const stripeSecret = process.env.STRIPE_SECRET_KEY;
+let stripe = null;
+if (stripeSecret) {
+  try {
+    stripe = new Stripe(stripeSecret);
+  } catch (e) {
+    console.warn("Stripe init:", e.message);
+  }
+}
 
 // Pre-configured active delivery partners for assignment
 const DELIVERY_BOYS = [
@@ -34,7 +42,7 @@ const placeOrder = async (req, res) => {
       amount: req.body.amount,
       address: req.body.address,
       status: "Food Processing",
-      payment: paymentMethod === "cod" ? false : false,
+      payment: false,
       paymentMethod: paymentMethod,
       restaurantLocation,
       userLocation,
@@ -53,8 +61,8 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    // Check if Stripe key is configured properly for Stripe Online Payment
-    if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_placeholder') {
+    // Handle Stripe Online Payment
+    if (paymentMethod === "stripe" && stripe) {
       try {
         const line_items = items.map((item) => ({
           price_data: {
@@ -83,11 +91,11 @@ const placeOrder = async (req, res) => {
 
         return res.json({ success: true, session_url: session.url });
       } catch (stripeErr) {
-        console.warn("Stripe checkout error, using direct confirmation:", stripeErr.message);
+        console.warn("Stripe checkout session error:", stripeErr.message);
       }
     }
 
-    // Default redirect for dev testing / stripe fallback
+    // Fallback confirmation redirect
     res.json({ 
       success: true, 
       session_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}` 
