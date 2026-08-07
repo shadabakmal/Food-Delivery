@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import './LoginPopup.css';
 import { assets } from '../../assets/frontend_assets/assets';
 import { StoreContext } from '../../Context/StoreContext';
@@ -6,12 +6,19 @@ import axios from 'axios';
 
 export default function LoginPopup({ setShowLogin }) {
   const [currState, setCurrState] = useState("Sign Up");
-  const { url, setToken, setUserName } = useContext(StoreContext);
+  const { url, setToken, token, setUserName } = useContext(StoreContext);
   const [data, setData] = useState({
     name: "",
     email: "",
     password: "",
   });
+
+  // Automatically close login modal if user is already logged in
+  useEffect(() => {
+    if (token) {
+      setShowLogin(false);
+    }
+  }, [token, setShowLogin]);
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
@@ -29,7 +36,7 @@ export default function LoginPopup({ setShowLogin }) {
       console.log("Response from server:", response);
 
       if (response.data.success) {
-        const displayName = data.name || response.data.name || (data.email ? data.email.split('@')[0] : "User");
+        const displayName = response.data.name || data.name || (data.email ? data.email.split('@')[0] : "User");
         setToken(response.data.token);
         if (setUserName) setUserName(displayName);
         localStorage.setItem("token", response.data.token);

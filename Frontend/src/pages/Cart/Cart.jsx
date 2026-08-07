@@ -325,6 +325,9 @@ export default function Cart({ setShowLogin }) {
                     <CheckCircle2 color="#2a9d8f" size={20} />
                   </div>
                   <p className="user-info-text">{userName || "User"} | Logged In</p>
+                  <button className="switch-account-link" onClick={logout}>
+                    Switch Account / Logout
+                  </button>
                 </div>
               ) : (
                 <div className="account-prompt-box">

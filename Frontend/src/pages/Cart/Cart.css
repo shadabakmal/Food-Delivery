@@ -213,6 +213,18 @@
   margin-top: 4px;
 }
 
+.switch-account-link {
+  background: transparent;
+  border: none;
+  color: #e63946;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 6px;
+  text-decoration: underline;
+}
+
 .auth-btn-row {
   display: flex;
   gap: 16px;
