@@ -623,7 +623,7 @@ export default function Cart({ setShowLogin }) {
                 <input 
                   type="text" 
                   required 
-                  placeholder="Shadab"
+                  placeholder="First name"
                   value={newAddr.firstName}
                   onChange={(e) => setNewAddr({ ...newAddr, firstName: e.target.value })}
                 />
@@ -633,7 +633,7 @@ export default function Cart({ setShowLogin }) {
                 <label>Last Name</label>
                 <input 
                   type="text" 
-                  placeholder="Akmal"
+                  placeholder="Last name"
                   value={newAddr.lastName}
                   onChange={(e) => setNewAddr({ ...newAddr, lastName: e.target.value })}
                 />
@@ -644,7 +644,7 @@ export default function Cart({ setShowLogin }) {
                 <input 
                   type="text" 
                   required 
-                  placeholder="9876543210"
+                  placeholder="10-digit mobile number"
                   value={newAddr.phone}
                   onChange={(e) => setNewAddr({ ...newAddr, phone: e.target.value })}
                 />
@@ -655,7 +655,7 @@ export default function Cart({ setShowLogin }) {
                 <input 
                   type="text" 
                   required 
-                  placeholder="Flat B29, Sardar Patel Nagar"
+                  placeholder="Flat / House No., Building, Street"
                   value={newAddr.street}
                   onChange={(e) => setNewAddr({ ...newAddr, street: e.target.value })}
                 />
@@ -665,7 +665,7 @@ export default function Cart({ setShowLogin }) {
                 <label>Area / Locality</label>
                 <input 
                   type="text" 
-                  placeholder="Govindpur Road"
+                  placeholder="Area, Colony, Sector"
                   value={newAddr.area}
                   onChange={(e) => setNewAddr({ ...newAddr, area: e.target.value })}
                 />
@@ -676,7 +676,7 @@ export default function Cart({ setShowLogin }) {
                 <input 
                   type="text" 
                   required 
-                  placeholder="Dhanbad"
+                  placeholder="City"
                   value={newAddr.city}
                   onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })}
                 />
@@ -687,7 +687,7 @@ export default function Cart({ setShowLogin }) {
                 <input 
                   type="text" 
                   required 
-                  placeholder="Jharkhand"
+                  placeholder="State"
                   value={newAddr.state}
                   onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })}
                 />
@@ -698,7 +698,7 @@ export default function Cart({ setShowLogin }) {
                 <input 
                   type="text" 
                   required 
-                  placeholder="826001"
+                  placeholder="6-digit Pincode"
                   value={newAddr.pincode}
                   onChange={(e) => setNewAddr({ ...newAddr, pincode: e.target.value })}
                 />
