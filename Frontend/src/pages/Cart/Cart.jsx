@@ -3,12 +3,20 @@ import './Cart.css';
 import { StoreContext } from '../../Context/StoreContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { User, MapPin, Wallet, CheckCircle2, HelpCircle, Plus, Minus, Tag, Utensils, X } from 'lucide-react';
+import { User, MapPin, Wallet, CheckCircle2, HelpCircle, Plus, Minus, Tag, Utensils, X, LogOut, Package } from 'lucide-react';
 import { assets } from '../../assets/frontend_assets/assets';
 
 export default function Cart({ setShowLogin }) {
-  const { cartItems, food_list, addToCart, removeFromCart, getTotalCartAmount, token, url } = useContext(StoreContext);
+  const { cartItems, food_list, addToCart, removeFromCart, getTotalCartAmount, token, setToken, userName, setUserName, url } = useContext(StoreContext);
   const navigate = useNavigate();
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userName");
+    setToken("");
+    if (setUserName) setUserName("");
+    navigate("/");
+  };
 
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
@@ -202,9 +210,27 @@ export default function Cart({ setShowLogin }) {
             </div>
             <div className="header-right-nav">
               <span className="help-link"><HelpCircle size={18} /> Help</span>
-              <span className="user-link">
-                <User size={18} /> {token ? "Shadab Akmal" : "Sign In"}
-              </span>
+              {!token ? (
+                <button className="navbar-signin-btn" onClick={() => setShowLogin(true)}>
+                  Sign In
+                </button>
+              ) : (
+                <div className="navbar-profile-dropdown-wrapper">
+                  <div className="profile-icon-pill">
+                    <User size={18} />
+                    <span className="user-name-text">{userName || "Shadab Akmal"}</span>
+                  </div>
+                  <ul className="nav-profile-dropdown-menu">
+                    <li onClick={() => navigate('/myorders')}>
+                      <Package size={16} /> <p>My Orders</p>
+                    </li>
+                    <hr />
+                    <li onClick={logout}>
+                      <LogOut size={16} /> <p>Logout</p>
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -242,9 +268,27 @@ export default function Cart({ setShowLogin }) {
           </div>
           <div className="header-right-nav">
             <span className="help-link"><HelpCircle size={18} /> Help</span>
-            <span className="user-link">
-              <User size={18} /> {token ? "Shadab Akmal" : "Sign In"}
-            </span>
+            {!token ? (
+              <button className="navbar-signin-btn" onClick={() => setShowLogin(true)}>
+                Sign In
+              </button>
+            ) : (
+              <div className="navbar-profile-dropdown-wrapper">
+                <div className="profile-icon-pill">
+                  <User size={18} />
+                  <span className="user-name-text">{userName || "Shadab Akmal"}</span>
+                </div>
+                <ul className="nav-profile-dropdown-menu">
+                  <li onClick={() => navigate('/myorders')}>
+                    <Package size={16} /> <p>My Orders</p>
+                  </li>
+                  <hr />
+                  <li onClick={logout}>
+                    <LogOut size={16} /> <p>Logout</p>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </header>

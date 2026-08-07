@@ -15,6 +15,7 @@ const formattedDefaultList = default_food_list.map((item, index) => ({
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
   const [token, setToken] = useState("");
+  const [userName, setUserName] = useState(localStorage.getItem("userName") || "Shadab Akmal");
   const [food_list, setFoodList] = useState(formattedDefaultList);
   const [searchTerm, setSearchTerm] = useState("");
   const url = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/").replace(/\/?$/, '/');
@@ -146,6 +147,8 @@ const StoreContextProvider = (props) => {
     url,
     token,
     setToken,
+    userName,
+    setUserName,
     setFoodList,
   };
 

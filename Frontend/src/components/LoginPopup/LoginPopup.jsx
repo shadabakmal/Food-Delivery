@@ -33,8 +33,11 @@ export default function LoginPopup({setShowLogin}) {
 
         if (response.data.success) {
             console.log("Login/register success");
+            const displayName = data.name || response.data.name || (data.email ? data.email.split('@')[0] : "Shadab Akmal");
             setToken(response.data.token);
+            if (setUserName) setUserName(displayName);
             localStorage.setItem("token", response.data.token);
+            localStorage.setItem("userName", displayName);
             setShowLogin(false);
         } else {
             console.log("Backend returned failure:", response.data.message);

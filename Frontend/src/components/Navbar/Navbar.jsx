@@ -8,18 +8,19 @@ import { Search, ShoppingBag, User, LogOut, Package, X } from 'lucide-react';
 function Navbar({ setShowLogin }) {
   const [menu, setMenu] = useState("home");
   const [showSearchInput, setShowSearchInput] = useState(false);
-  const { token, setToken, getTotalCartAmount, getTotalCartCount, searchTerm, setSearchTerm } = useContext(StoreContext);
+  const { token, setToken, userName, setUserName, getTotalCartAmount, getTotalCartCount, searchTerm, setSearchTerm } = useContext(StoreContext);
   const navigate = useNavigate();
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userName");
     setToken("");
+    if (setUserName) setUserName("");
     navigate("/");
   };
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    // Smooth scroll to food display section when typing search
     const exploreSection = document.getElementById("food-display");
     if (exploreSection && e.target.value.trim() !== "") {
       exploreSection.scrollIntoView({ behavior: 'smooth' });
@@ -97,6 +98,7 @@ function Navbar({ setShowLogin }) {
             <div className='navbar-profile-dropdown-wrapper'>
               <div className="profile-icon-pill">
                 <User size={18} />
+                <span className="user-name-text">{userName || "Shadab Akmal"}</span>
               </div>
               <ul className="nav-profile-dropdown-menu">
                 <li onClick={() => navigate('/myorders')}>
