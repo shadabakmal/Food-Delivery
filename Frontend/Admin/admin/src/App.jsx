@@ -7,7 +7,7 @@ import List from './pages/List/List'
 import Order from './pages/Order/Order'
  import { ToastContainer, toast } from 'react-toastify';
 export default function App() {
-  const url = 'http://localhost:5000'
+  const url = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/").replace(/\/?$/, '/');
   return (
     <div>
       <ToastContainer/>

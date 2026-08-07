@@ -8,7 +8,7 @@ const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
   const [token, setToken] = useState(""); // ✅ must be string
   const [food_list, setFoodList] = useState([]);
-  const url = "http://localhost:5000/";
+  const url = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/").replace(/\/?$/, '/');
 
   const fetchFoodList = async () => {
     const response = await axios.get(url + "api/food/list");
