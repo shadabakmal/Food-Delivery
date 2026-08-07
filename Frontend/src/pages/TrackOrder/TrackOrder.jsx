@@ -297,13 +297,13 @@ export default function TrackOrder() {
                 <div key={idx} className="item-row">
                   <span className="qty">{item.quantity}x</span>
                   <span className="name">{item.name}</span>
-                  <span className="price">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="price">₹{(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
             <div className="total-row">
               <span>Total Paid</span>
-              <span className="total-amount">${order.amount?.toFixed(2)}</span>
+              <span className="total-amount">₹{order.amount}</span>
             </div>
           </div>
         </div>

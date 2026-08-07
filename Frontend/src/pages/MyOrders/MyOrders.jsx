@@ -51,7 +51,7 @@ export default function MyOrders() {
                                         }
                                     })}
                                 </p>
-                                <p className="amount">${order.amount.toFixed(2)}</p>
+                                <p className="amount">₹{order.amount}</p>
                                 <p className="items-count">Items: {order.items.length}</p>
                                 <p className="status-badge">
                                     <span className={order.status === 'Delivered' ? 'status-dot delivered' : 'status-dot active'}>&#x25cf;</span> 

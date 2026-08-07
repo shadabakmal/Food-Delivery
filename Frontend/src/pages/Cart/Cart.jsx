@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import './Cart.css';
 import { StoreContext } from '../../Context/StoreContext';
 import { useNavigate } from 'react-router-dom';
+import { assets } from '../../assets/frontend_assets/assets';
 
 export default function Cart() {
   const { cartItems, food_list, removeFromCart, getTotalCartAmount, url } = useContext(StoreContext);
@@ -9,14 +10,17 @@ export default function Cart() {
 
   const cartHasItems = food_list.some(item => cartItems[item._id] > 0);
 
-  useEffect(() => {
-    if (!cartHasItems) {
-      const timer = setTimeout(() => {
-        navigate('/');
-      }, 2000);
-      return () => clearTimeout(timer);
+  const getImageUrl = (item) => {
+    if (!item.image) return assets.food_1;
+    if (typeof item.image === 'object') return item.image;
+    if (typeof item.image === 'string') {
+      if (item.image.startsWith('http') || item.image.startsWith('data:')) return item.image;
+      return url + 'images/' + item.image;
     }
-  }, [cartHasItems, navigate]);
+    return assets.food_1;
+  };
+
+  const deliveryFee = getTotalCartAmount() === 0 ? 0 : 40;
 
   return (
     <div className="cart">
@@ -38,13 +42,17 @@ export default function Cart() {
                 return (
                   <div key={item._id}>
                     <div className="cart-items-title cart-items-item">
-                      {/* FIX: Ensure the image path is correct */}
-                      <img src={item.image} alt={item.name} className="cart-item-image" />
+                      <img 
+                        src={getImageUrl(item)} 
+                        onError={(e) => { e.target.onerror = null; e.target.src = assets.food_1; }} 
+                        alt={item.name} 
+                        className="cart-item-image" 
+                      />
                       <p>{item.name}</p>
-                      <p>${item.price}</p>
+                      <p>₹{item.price}</p>
                       <p className="quantity-badge">{cartItems[item._id]}</p>
-                      <p>${(cartItems[item._id] * item.price).toFixed(2)}</p>
-                      <p onClick={() => removeFromCart(item._id)} className="cross">x</p>
+                      <p>₹{(cartItems[item._id] * item.price)}</p>
+                      <p onClick={() => removeFromCart(item._id)} className="cross">✕</p>
                     </div>
                     <hr />
                   </div>
@@ -57,20 +65,29 @@ export default function Cart() {
           <div className="cart-bottom">
             <div className="cart-total">
               <h2>Cart Totals</h2>
-              <div className="cart-total-details"><p>SubTotal</p><p>${getTotalCartAmount().toFixed(2)}</p></div>
+              <div className="cart-total-details">
+                <p>SubTotal</p>
+                <p>₹{getTotalCartAmount()}</p>
+              </div>
               <hr />
-              <div className="cart-total-details"><p>Delivery Fee</p><p>$2.00</p></div>
+              <div className="cart-total-details">
+                <p>Delivery Fee</p>
+                <p>₹{deliveryFee}</p>
+              </div>
               <hr />
-              <div className="cart-total-details"><b>Total</b><b>${(getTotalCartAmount() + 2).toFixed(2)}</b></div>
+              <div className="cart-total-details">
+                <b>Total</b>
+                <b>₹{getTotalCartAmount() + deliveryFee}</b>
+              </div>
               <button onClick={() => navigate('/order')}>PROCEED TO CHECKOUT</button>
             </div>
           </div>
         </>
       ) : (
         <div className="cart-empty">
-          <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-illustration-download-in-svg-png-gif-file-formats--wishlist-bucket-shopping-state-pack-design-development-illustrations-6430770.png" alt="Empty Cart" />
+          <img src={assets.empty_cart || assets.food_1} alt="Empty Cart" />
           <h2>Your cart is empty</h2>
-          <p>Redirecting you to the menu...</p>
+          <button className="explore-menu-btn" onClick={() => navigate('/')}>Explore Dishes</button>
         </div>
       )}
     </div>
