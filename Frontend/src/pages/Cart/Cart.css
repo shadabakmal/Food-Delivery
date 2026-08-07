@@ -45,6 +45,7 @@
 .header-right-nav {
   display: flex;
   gap: 24px;
+  align-items: center;
   font-size: 14px;
   font-weight: 600;
   color: #3d4152;
@@ -283,7 +284,6 @@
   box-shadow: 0 4px 14px rgba(96, 178, 70, 0.15);
 }
 
-/* Screenshot 2 Add New Address Card Styling */
 .add-new-card-swiggy {
   border: 1px dashed #cbd5e1 !important;
   background: white;
@@ -387,6 +387,59 @@
 
 .deliver-here-btn.active {
   background: #60b246;
+}
+
+/* Payment Methods Grid */
+.payment-methods-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.payment-method-card {
+  border: 1px solid #e2e8f0;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-method-card.selected {
+  border-color: #60b246;
+  background: #f0fdf4;
+  box-shadow: 0 4px 14px rgba(96, 178, 70, 0.12);
+}
+
+.pay-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.pay-header-row input[type="radio"] {
+  accent-color: #60b246;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.instant-badge {
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: auto;
+}
+
+.pay-desc-text {
+  font-size: 12px;
+  color: #64748b;
+  margin: 6px 0 0 26px;
 }
 
 /* Right Sidebar Order Summary */

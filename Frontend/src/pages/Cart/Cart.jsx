@@ -3,7 +3,7 @@ import './Cart.css';
 import { StoreContext } from '../../Context/StoreContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { User, MapPin, Wallet, CheckCircle2, HelpCircle, Plus, Minus, Tag, Utensils, X, LogOut, Package } from 'lucide-react';
+import { User, MapPin, Wallet, CheckCircle2, HelpCircle, Plus, Minus, Tag, Utensils, X, LogOut, Package, CreditCard, Banknote } from 'lucide-react';
 import { assets } from '../../assets/frontend_assets/assets';
 
 export default function Cart({ setShowLogin }) {
@@ -21,6 +21,7 @@ export default function Cart({ setShowLogin }) {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('stripe'); // 'stripe' or 'cod'
   const [suggestions, setSuggestions] = useState('');
   const [noContact, setNoContact] = useState(false);
   const [couponCode, setCouponCode] = useState('');
@@ -47,25 +48,30 @@ export default function Cart({ setShowLogin }) {
   const gstCharges = subTotal === 0 ? 0 : Math.round(subTotal * 0.05);
   const finalTotal = subTotal === 0 ? 0 : Math.max(0, subTotal + deliveryFee + gstCharges - discount);
 
-  // Fetch saved addresses from backend database or localStorage
+  // Fetch saved addresses STRICTLY when user is logged in
   const fetchAddresses = async () => {
-    if (token) {
-      try {
-        const res = await axios.get(url + "api/user/address/get", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.data.success && res.data.addresses && res.data.addresses.length > 0) {
-          setSavedAddresses(res.data.addresses);
-          setSelectedAddressId(res.data.addresses[0].id || '0');
-          return;
-        }
-      } catch (err) {
-        console.warn("Error fetching user addresses:", err.message);
-      }
+    if (!token) {
+      setSavedAddresses([]);
+      setSelectedAddressId('');
+      return;
     }
 
-    // Check localStorage fallback
-    const local = localStorage.getItem("user_addresses");
+    try {
+      const res = await axios.get(url + "api/user/address/get", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success && res.data.addresses && res.data.addresses.length > 0) {
+        setSavedAddresses(res.data.addresses);
+        setSelectedAddressId(res.data.addresses[0].id || '0');
+        return;
+      }
+    } catch (err) {
+      console.warn("Error fetching user addresses:", err.message);
+    }
+
+    // User-specific localStorage fallback
+    const localKey = `user_addresses_${token}`;
+    const local = localStorage.getItem(localKey);
     if (local) {
       try {
         const parsed = JSON.parse(local);
@@ -87,6 +93,11 @@ export default function Cart({ setShowLogin }) {
   // Handle saving new address to database & local state
   const handleSaveAddress = async (e) => {
     e.preventDefault();
+    if (!token) {
+      if (setShowLogin) setShowLogin(true);
+      return;
+    }
+
     if (!newAddr.firstName || !newAddr.phone || !newAddr.street || !newAddr.city) {
       alert("Please fill in all required address fields.");
       return;
@@ -100,9 +111,9 @@ export default function Cart({ setShowLogin }) {
     const updatedList = [...savedAddresses, createdAddress];
     setSavedAddresses(updatedList);
     setSelectedAddressId(createdAddress.id);
-    localStorage.setItem("user_addresses", JSON.stringify(updatedList));
 
     if (token) {
+      localStorage.setItem(`user_addresses_${token}`, JSON.stringify(updatedList));
       try {
         await axios.post(
           url + "api/user/address/add",
@@ -163,7 +174,8 @@ export default function Cart({ setShowLogin }) {
     let orderData = {
       address: selectedAddressObj,
       items: orderItems,
-      amount: finalTotal
+      amount: finalTotal,
+      paymentMethod: paymentMethod
     };
 
     try {
@@ -190,7 +202,10 @@ export default function Cart({ setShowLogin }) {
     if (!item.image) return assets.food_1;
     if (typeof item.image === 'object') return item.image;
     if (typeof item.image === 'string') {
-      if (item.image.startsWith('http') || item.image.startsWith('data:')) return item.image;
+      if (item.image.startsWith('http') || item.image.startsWith('data:') || item.image.startsWith('/')) return item.image;
+      if (assets[item.image]) return assets[item.image];
+      const cleanKey = item.image.replace('.png', '').replace('.jpg', '');
+      if (assets[cleanKey]) return assets[cleanKey];
       return url + 'images/' + item.image;
     }
     return assets.food_1;
@@ -309,7 +324,7 @@ export default function Cart({ setShowLogin }) {
                     <h3>Logged in</h3>
                     <CheckCircle2 color="#2a9d8f" size={20} />
                   </div>
-                  <p className="user-info-text">Shadab Akmal | 9876543210</p>
+                  <p className="user-info-text">{userName || "Shadab Akmal"} | Logged In</p>
                 </div>
               ) : (
                 <div className="account-prompt-box">
@@ -339,15 +354,15 @@ export default function Cart({ setShowLogin }) {
               <div className="step-title-row">
                 <h3>Choose a delivery address</h3>
                 <span className="sub-title-text">
-                  {savedAddresses.length > 0 ? `${savedAddresses.length} addresses available` : 'No saved address found'}
+                  {!token ? 'Please log in to view or add saved addresses' : (savedAddresses.length > 0 ? `${savedAddresses.length} addresses available` : 'No saved address found')}
                 </span>
               </div>
 
-              {savedAddresses.length === 0 ? (
+              {!token ? (
                 <div className="no-saved-addr-prompt">
-                  <p>No saved delivery address found in database.</p>
-                  <button className="add-new-btn-green" onClick={() => setShowAddressModal(true)}>
-                    + ADD NEW ADDRESS FORM
+                  <p>🔒 Please sign in to choose or add your delivery address.</p>
+                  <button className="add-new-btn-green" onClick={() => setShowLogin && setShowLogin(true)}>
+                    SIGN IN TO CONTINUE
                   </button>
                 </div>
               ) : (
@@ -395,14 +410,53 @@ export default function Cart({ setShowLogin }) {
 
           <div className="vertical-timeline-line"></div>
 
-          {/* STEP 3: PAYMENT */}
+          {/* STEP 3: PAYMENT OPTIONS (STRIPE & COD) */}
           <div className="stepper-block">
-            <div className="step-timeline-icon">
+            <div className="step-timeline-icon active">
               <Wallet size={18} />
             </div>
             <div className="step-card-content">
-              <h3 className="payment-title">Payment</h3>
-              <p className="payment-sub">Choose payment method to complete order</p>
+              <h3 className="payment-title">Payment Method</h3>
+              <p className="payment-sub">Choose your preferred payment option</p>
+
+              <div className="payment-methods-grid">
+                {/* Stripe Online Payment Option */}
+                <div 
+                  className={`payment-method-card ${paymentMethod === 'stripe' ? 'selected' : ''}`}
+                  onClick={() => setPaymentMethod('stripe')}
+                >
+                  <div className="pay-header-row">
+                    <input 
+                      type="radio" 
+                      name="paymentGroup" 
+                      checked={paymentMethod === 'stripe'} 
+                      onChange={() => setPaymentMethod('stripe')} 
+                    />
+                    <CreditCard size={18} color="#60b246" />
+                    <strong>Stripe Online Payment</strong>
+                    <span className="instant-badge">Instant</span>
+                  </div>
+                  <p className="pay-desc-text">Credit / Debit Card, UPI, NetBanking via Stripe</p>
+                </div>
+
+                {/* Cash on Delivery Option */}
+                <div 
+                  className={`payment-method-card ${paymentMethod === 'cod' ? 'selected' : ''}`}
+                  onClick={() => setPaymentMethod('cod')}
+                >
+                  <div className="pay-header-row">
+                    <input 
+                      type="radio" 
+                      name="paymentGroup" 
+                      checked={paymentMethod === 'cod'} 
+                      onChange={() => setPaymentMethod('cod')} 
+                    />
+                    <Banknote size={18} color="#0f172a" />
+                    <strong>Cash on Delivery (COD)</strong>
+                  </div>
+                  <p className="pay-desc-text">Pay cash to delivery partner upon order arrival</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -528,7 +582,11 @@ export default function Cart({ setShowLogin }) {
 
             {/* Proceed to Payment Button */}
             <button className="swiggy-pay-btn" onClick={handlePlaceOrder}>
-              {token ? `PAY ₹${finalTotal} & PLACE ORDER` : 'LOGIN TO PROCEED'}
+              {!token 
+                ? 'LOGIN TO PROCEED' 
+                : paymentMethod === 'stripe' 
+                  ? `PAY ₹${finalTotal} VIA STRIPE` 
+                  : `PLACE COD ORDER (₹${finalTotal})`}
             </button>
           </div>
         </div>

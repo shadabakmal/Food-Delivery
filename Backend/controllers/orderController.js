@@ -17,6 +17,7 @@ const placeOrder = async (req, res) => {
 
   try {
     const items = req.body.items;
+    const paymentMethod = req.body.paymentMethod || "stripe";
 
     // Restaurant default coordinates (e.g. Connaught Place, New Delhi)
     const restaurantLocation = { lat: 28.6315, lng: 77.2167 };
@@ -33,6 +34,8 @@ const placeOrder = async (req, res) => {
       amount: req.body.amount,
       address: req.body.address,
       status: "Food Processing",
+      payment: paymentMethod === "cod" ? false : false,
+      paymentMethod: paymentMethod,
       restaurantLocation,
       userLocation,
       deliveryBoyLocation: restaurantLocation
@@ -42,7 +45,15 @@ const placeOrder = async (req, res) => {
     // Clear cart after order placed
     await userModel.findByIdAndUpdate(req.userId, { cartData: {} });
 
-    // Check if Stripe key is configured properly
+    // Handle Cash on Delivery
+    if (paymentMethod === "cod") {
+      return res.json({ 
+        success: true, 
+        session_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}` 
+      });
+    }
+
+    // Check if Stripe key is configured properly for Stripe Online Payment
     if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_placeholder') {
       try {
         const line_items = items.map((item) => ({
@@ -57,8 +68,8 @@ const placeOrder = async (req, res) => {
         line_items.push({
           price_data: {
             currency: "inr",
-            product_data: { name: "Delivery charges" },
-            unit_amount: 200,
+            product_data: { name: "Delivery & Service charges" },
+            unit_amount: 4000,
           },
           quantity: 1,
         });
@@ -72,11 +83,11 @@ const placeOrder = async (req, res) => {
 
         return res.json({ success: true, session_url: session.url });
       } catch (stripeErr) {
-        console.warn("Stripe checkout failed, falling back to direct order confirmation:", stripeErr.message);
+        console.warn("Stripe checkout error, using direct confirmation:", stripeErr.message);
       }
     }
 
-    // Direct success redirect fallback for dev testing
+    // Default redirect for dev testing / stripe fallback
     res.json({ 
       success: true, 
       session_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}` 
