@@ -28,13 +28,29 @@ export default function LoginPopup({ setShowLogin }) {
 
   const login = async (event) => {
     event.preventDefault();
-    const cleanUrl = url.replace(/\/$/, '');
-    const endpoint = currState === 'Login' ? `${cleanUrl}/api/user/login` : `${cleanUrl}/api/user/register`;
+    const actionPath = currState === 'Login' ? 'api/user/login' : 'api/user/register';
+    const primaryEndpoint = `${url.replace(/\/$/, '')}/${actionPath}`;
+    const fallbackEndpoint = `/${actionPath}`;
 
+    let response = null;
     try {
-      const response = await axios.post(endpoint, data);
-      console.log("Response from server:", response);
+      response = await axios.post(primaryEndpoint, data);
+    } catch (primaryErr) {
+      console.warn("Primary endpoint failed, trying fallback proxy:", primaryErr.message);
+      try {
+        response = await axios.post(fallbackEndpoint, data);
+      } catch (fallbackErr) {
+        console.error("Both authentication endpoints failed:", fallbackErr.message);
+        alert(
+          fallbackErr.response?.data?.message || 
+          primaryErr.response?.data?.message || 
+          "Connection issue with authentication server. Please try again."
+        );
+        return;
+      }
+    }
 
+    if (response && response.data) {
       if (response.data.success) {
         const displayName = response.data.name || data.name || (data.email ? data.email.split('@')[0] : "User");
         setToken(response.data.token);
@@ -45,9 +61,6 @@ export default function LoginPopup({ setShowLogin }) {
       } else {
         alert(response.data.message || "Authentication failed.");
       }
-    } catch (err) {
-      console.error("Axios login error:", err);
-      alert(err.response?.data?.message || "Failed to connect to authentication server. Please try again.");
     }
   };
 

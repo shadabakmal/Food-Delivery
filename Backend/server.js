@@ -9,23 +9,28 @@ import orderRouter from './routes/orderRoutes.js'
 
 // app config
 const app = express()
-const port = 5000
+const port = process.env.PORT || 5000
 
 //middleware
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'token']
+}));
+app.options('*', cors());
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
-app.use('/images',express.static('uploads'));
-app.use(cors());
-
-
+app.use('/images', express.static('uploads'));
 
 //Db connection
 connectDB();
-app.use("/api/food",foodRouter)
-app.use('/api/user',userRouter)
-app.use('/api/cart',cartRouter)
-app.use('/api/order',orderRouter)
-app.get('/',(req,res)=>{
+app.use("/api/food", foodRouter)
+app.use('/api/user', userRouter)
+app.use('/api/cart', cartRouter)
+app.use('/api/order', orderRouter)
+
+app.get('/', (req, res) => {
     res.send("Api working")
 })
 

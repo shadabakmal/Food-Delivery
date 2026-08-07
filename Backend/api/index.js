@@ -9,10 +9,17 @@ import orderRouter from '../routes/orderRoutes.js';
 
 const app = express();
 
+// Permissive CORS for all origins, preview domains, and preflight OPTIONS requests
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'token']
+}));
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/images', express.static('uploads'));
-app.use(cors());
 
 // Middleware to ensure database connection before processing requests
 app.use(async (req, res, next) => {
