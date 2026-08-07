@@ -33,4 +33,10 @@ app.get('/', (req, res) => {
   res.send("Api working");
 });
 
+// Global error handler middleware
+app.use((err, req, res, next) => {
+  console.error("Serverless Error Handler:", err);
+  res.status(500).json({ success: false, message: err.message || "Internal Server Error" });
+});
+
 export default app;

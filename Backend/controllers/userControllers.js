@@ -24,7 +24,7 @@ const loginUser = async (req,res)=>{
     }
 }
 const createToken = (id)=>{
-    return jwt.sign({id},process.env.JWT_SECRET)
+    return jwt.sign({id}, process.env.JWT_SECRET || "default_food_delivery_jwt_secret");
 }
 
 //register user
