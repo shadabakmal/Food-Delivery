@@ -3,42 +3,145 @@ import './Cart.css';
 import { StoreContext } from '../../Context/StoreContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { User, MapPin, Wallet, CheckCircle2, HelpCircle, Plus, Minus, Tag, ShieldCheck } from 'lucide-react';
+import { User, MapPin, Wallet, CheckCircle2, HelpCircle, Plus, Minus, Tag, Utensils, X } from 'lucide-react';
 import { assets } from '../../assets/frontend_assets/assets';
 
 export default function Cart({ setShowLogin }) {
   const { cartItems, food_list, addToCart, removeFromCart, getTotalCartAmount, token, url } = useContext(StoreContext);
   const navigate = useNavigate();
 
-  const [selectedAddress, setSelectedAddress] = useState('home');
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [showAddressModal, setShowAddressModal] = useState(false);
   const [suggestions, setSuggestions] = useState('');
   const [noContact, setNoContact] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
+  const [couponError, setCouponError] = useState('');
 
-  const [addressData, setAddressData] = useState({
-    firstName: "Shadab",
-    lastName: "Akmal",
-    email: "akmal@gmail.com",
-    street: "B29, Govindpur Road, Sardar Patel Nagar",
-    city: "Dhanbad",
-    state: "Jharkhand",
-    pincode: "826001",
-    country: "India",
-    phone: "9876543210"
+  // New Address Form State
+  const [newAddr, setNewAddr] = useState({
+    type: "Home",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    street: "",
+    area: "",
+    city: "",
+    state: "",
+    pincode: ""
   });
 
   const cartHasItems = food_list.some(item => cartItems[item._id] > 0);
   const subTotal = getTotalCartAmount();
   const deliveryFee = subTotal === 0 ? 0 : 40;
-  const discount = couponApplied ? Math.min(subTotal * 0.15, 150) : 0;
+  const discount = couponApplied ? Math.min(Math.round(subTotal * 0.15), 150) : 0;
   const gstCharges = subTotal === 0 ? 0 : Math.round(subTotal * 0.05);
   const finalTotal = subTotal === 0 ? 0 : Math.max(0, subTotal + deliveryFee + gstCharges - discount);
+
+  // Fetch saved addresses from backend database or localStorage
+  const fetchAddresses = async () => {
+    if (token) {
+      try {
+        const res = await axios.get(url + "api/user/address/get", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.success && res.data.addresses && res.data.addresses.length > 0) {
+          setSavedAddresses(res.data.addresses);
+          setSelectedAddressId(res.data.addresses[0].id || '0');
+          return;
+        }
+      } catch (err) {
+        console.warn("Error fetching user addresses:", err.message);
+      }
+    }
+
+    // Check localStorage fallback
+    const local = localStorage.getItem("user_addresses");
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (parsed && parsed.length > 0) {
+          setSavedAddresses(parsed);
+          setSelectedAddressId(parsed[0].id || '0');
+          return;
+        }
+      } catch (e) {}
+    }
+
+    setSavedAddresses([]);
+  };
+
+  useEffect(() => {
+    fetchAddresses();
+  }, [token]);
+
+  // Handle saving new address to database & local state
+  const handleSaveAddress = async (e) => {
+    e.preventDefault();
+    if (!newAddr.firstName || !newAddr.phone || !newAddr.street || !newAddr.city) {
+      alert("Please fill in all required address fields.");
+      return;
+    }
+
+    const createdAddress = {
+      ...newAddr,
+      id: Date.now().toString()
+    };
+
+    const updatedList = [...savedAddresses, createdAddress];
+    setSavedAddresses(updatedList);
+    setSelectedAddressId(createdAddress.id);
+    localStorage.setItem("user_addresses", JSON.stringify(updatedList));
+
+    if (token) {
+      try {
+        await axios.post(
+          url + "api/user/address/add",
+          { address: createdAddress },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (err) {
+        console.error("Save address API error:", err);
+      }
+    }
+
+    setShowAddressModal(false);
+    setNewAddr({
+      type: "Home",
+      firstName: "",
+      lastName: "",
+      phone: "",
+      street: "",
+      area: "",
+      city: "",
+      state: "",
+      pincode: ""
+    });
+  };
+
+  const handleApplyCoupon = () => {
+    if (couponCode.trim().toUpperCase() === "TOMATO15") {
+      setCouponApplied(true);
+      setCouponError('');
+    } else {
+      setCouponApplied(false);
+      setCouponError('Invalid coupon! Try TOMATO15');
+    }
+  };
+
+  const selectedAddressObj = savedAddresses.find(a => a.id === selectedAddressId) || savedAddresses[0] || null;
 
   const handlePlaceOrder = async (e) => {
     if (e) e.preventDefault();
     if (!token) {
       if (setShowLogin) setShowLogin(true);
+      return;
+    }
+
+    if (!selectedAddressObj) {
+      alert("Please add and select a delivery address.");
+      setShowAddressModal(true);
       return;
     }
 
@@ -50,7 +153,7 @@ export default function Cart({ setShowLogin }) {
     });
 
     let orderData = {
-      address: addressData,
+      address: selectedAddressObj,
       items: orderItems,
       amount: finalTotal
     };
@@ -74,11 +177,21 @@ export default function Cart({ setShowLogin }) {
     }
   };
 
-  // Swiggy Empty Cart View (Screenshot 5)
+  // Image URL Helper with Fallback
+  const getImageUrl = (item) => {
+    if (!item.image) return assets.food_1;
+    if (typeof item.image === 'object') return item.image;
+    if (typeof item.image === 'string') {
+      if (item.image.startsWith('http') || item.image.startsWith('data:')) return item.image;
+      return url + 'images/' + item.image;
+    }
+    return assets.food_1;
+  };
+
+  // Swiggy Empty Cart View
   if (!cartHasItems) {
     return (
       <div className="swiggy-checkout-page">
-        {/* Header Bar */}
         <header className="swiggy-checkout-header">
           <div className="header-inner">
             <div className="brand-left">
@@ -96,7 +209,6 @@ export default function Cart({ setShowLogin }) {
           </div>
         </header>
 
-        {/* Empty Cart Center Display */}
         <div className="swiggy-empty-cart-container">
           <div className="cooking-pan-illustration">
             <div className="pan-handle"></div>
@@ -117,7 +229,6 @@ export default function Cart({ setShowLogin }) {
     );
   }
 
-  // Active Swiggy Checkout View (Screenshots 1, 2, 3)
   return (
     <div className="swiggy-checkout-page">
       {/* Header Bar */}
@@ -139,7 +250,7 @@ export default function Cart({ setShowLogin }) {
       </header>
 
       <div className="swiggy-checkout-main">
-        {/* Left Column: Vertical Timeline Stepper */}
+        {/* Left Column: Vertical Stepper */}
         <div className="swiggy-stepper-column">
           
           {/* STEP 1: ACCOUNT */}
@@ -183,36 +294,50 @@ export default function Cart({ setShowLogin }) {
             <div className="step-card-content">
               <div className="step-title-row">
                 <h3>Choose a delivery address</h3>
-                <span className="sub-title-text">Multiple addresses in this location</span>
+                <span className="sub-title-text">
+                  {savedAddresses.length > 0 ? `${savedAddresses.length} addresses available` : 'No saved address found'}
+                </span>
               </div>
 
-              <div className="address-cards-grid">
-                {/* Home Address Card */}
-                <div className={`address-card ${selectedAddress === 'home' ? 'selected' : ''}`}>
-                  <div className="addr-icon"><span className="addr-emoji">🏠</span> <strong>Home</strong></div>
-                  <p className="addr-text">B29, Govindpur Road, Sardar Patel Nagar, Dhanbad, Jharkhand 826001</p>
-                  <span className="eta-tag">25 MINS</span>
-                  <button className="deliver-here-btn" onClick={() => setSelectedAddress('home')}>
-                    DELIVER HERE
+              {savedAddresses.length === 0 ? (
+                <div className="no-saved-addr-prompt">
+                  <p>No saved delivery address found in database.</p>
+                  <button className="add-new-btn-green" onClick={() => setShowAddressModal(true)}>
+                    + ADD NEW ADDRESS FORM
                   </button>
                 </div>
+              ) : (
+                <div className="address-cards-grid">
+                  {savedAddresses.map((addr) => (
+                    <div 
+                      key={addr.id} 
+                      className={`address-card ${selectedAddressId === addr.id ? 'selected' : ''}`}
+                      onClick={() => setSelectedAddressId(addr.id)}
+                    >
+                      <div className="addr-icon">
+                        <span className="addr-emoji">{addr.type === 'Home' ? '🏠' : addr.type === 'Work' ? '🏢' : '📍'}</span> 
+                        <strong>{addr.type || 'Address'}</strong>
+                      </div>
+                      <p className="addr-text">
+                        {addr.street}, {addr.area ? addr.area + ',' : ''} {addr.city}, {addr.state} ({addr.phone})
+                      </p>
+                      <span className="eta-tag">25 MINS</span>
+                      <button 
+                        className={`deliver-here-btn ${selectedAddressId === addr.id ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); setSelectedAddressId(addr.id); }}
+                      >
+                        {selectedAddressId === addr.id ? 'SELECTED' : 'DELIVER HERE'}
+                      </button>
+                    </div>
+                  ))}
 
-                {/* Hostel Address Card */}
-                <div className={`address-card ${selectedAddress === 'hostel' ? 'selected' : ''}`}>
-                  <div className="addr-icon"><span className="addr-emoji">📍</span> <strong>Hostel</strong></div>
-                  <p className="addr-text">Aquamarine Hostel, IIT ISM Dhanbad, Govindpur Road, Jharkhand</p>
-                  <span className="eta-tag">25 MINS</span>
-                  <button className="deliver-here-btn" onClick={() => setSelectedAddress('hostel')}>
-                    DELIVER HERE
-                  </button>
+                  {/* Add New Address Trigger Card */}
+                  <div className="address-card add-new" onClick={() => setShowAddressModal(true)}>
+                    <div className="addr-icon"><Plus size={20} color="#60b246" /> <strong>Add New Address</strong></div>
+                    <button className="add-new-btn">+ ADD NEW</button>
+                  </div>
                 </div>
-
-                {/* Add New Address */}
-                <div className="address-card add-new">
-                  <div className="addr-icon"><Plus size={20} color="#2a9d8f" /> <strong>Add New Address</strong></div>
-                  <button className="add-new-btn">+ ADD NEW</button>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -230,13 +355,15 @@ export default function Cart({ setShowLogin }) {
           </div>
         </div>
 
-        {/* Right Column: Swiggy Order Summary Sidebar */}
+        {/* Right Sidebar Column */}
         <div className="swiggy-sidebar-column">
           <div className="swiggy-order-summary-card">
             
             {/* Restaurant Header */}
             <div className="summary-restaurant-header">
-              <img src={assets.food_1} alt="Restaurant" className="summary-rest-img" />
+              <div className="rest-icon-badge">
+                <Utensils size={22} color="#e63946" />
+              </div>
               <div>
                 <h4>Tomato Kitchen Hub</h4>
                 <p>Connaught Place, New Delhi</p>
@@ -250,7 +377,12 @@ export default function Cart({ setShowLogin }) {
                   return (
                     <div key={item._id} className="summary-item-row">
                       <div className="item-name-box">
-                        <span className="veg-icon">🟢</span>
+                        <img 
+                          src={getImageUrl(item)} 
+                          onError={(e) => { e.target.onerror = null; e.target.src = assets.food_1; }} 
+                          alt={item.name} 
+                          className="item-thumb-img" 
+                        />
                         <span className="item-name-str">{item.name}</span>
                       </div>
 
@@ -293,20 +425,21 @@ export default function Cart({ setShowLogin }) {
               </label>
             </div>
 
-            {/* Apply Coupon Box */}
+            {/* Apply Coupon Box (TOMATO15) */}
             <div className="coupon-box">
               <div className="coupon-input-row">
                 <Tag size={16} color="#e63946" />
                 <input 
                   type="text" 
-                  placeholder="Apply Coupon (Use SWIGGY15)" 
+                  placeholder="Apply Coupon (Use TOMATO15)" 
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
                 />
-                <button onClick={() => setCouponApplied(!couponApplied)}>
+                <button onClick={handleApplyCoupon}>
                   {couponApplied ? 'APPLIED' : 'APPLY'}
                 </button>
               </div>
+              {couponError && <p className="coupon-error-text">{couponError}</p>}
             </div>
 
             {/* Bill Details */}
@@ -325,7 +458,7 @@ export default function Cart({ setShowLogin }) {
 
               {couponApplied && (
                 <div className="bill-row discount">
-                  <span>Item Discount</span>
+                  <span>Item Discount (TOMATO15)</span>
                   <span className="discount-val">- ₹{discount}</span>
                 </div>
               )}
@@ -341,13 +474,134 @@ export default function Cart({ setShowLogin }) {
               </div>
             </div>
 
-            {/* Proceed to Payment Action Button */}
+            {/* Proceed to Payment Button */}
             <button className="swiggy-pay-btn" onClick={handlePlaceOrder}>
               {token ? `PAY ₹${finalTotal} & PLACE ORDER` : 'LOGIN TO PROCEED'}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Add New Address Form Modal */}
+      {showAddressModal && (
+        <div className="address-modal-overlay">
+          <div className="address-modal-card">
+            <div className="modal-header">
+              <h3>Save Delivery Address</h3>
+              <X size={20} className="close-modal" onClick={() => setShowAddressModal(false)} />
+            </div>
+
+            <form onSubmit={handleSaveAddress} className="address-form-grid">
+              <div className="form-group full">
+                <label>Address Tag</label>
+                <div className="tag-select-buttons">
+                  {['Home', 'Work', 'Other'].map(type => (
+                    <button 
+                      type="button" 
+                      key={type} 
+                      className={newAddr.type === type ? 'active' : ''}
+                      onClick={() => setNewAddr({ ...newAddr, type })}
+                    >
+                      {type === 'Home' ? '🏠 Home' : type === 'Work' ? '🏢 Work' : '📍 Other'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>First Name *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Shadab"
+                  value={newAddr.firstName}
+                  onChange={(e) => setNewAddr({ ...newAddr, firstName: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Last Name</label>
+                <input 
+                  type="text" 
+                  placeholder="Akmal"
+                  value={newAddr.lastName}
+                  onChange={(e) => setNewAddr({ ...newAddr, lastName: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group full">
+                <label>Phone Number *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="9876543210"
+                  value={newAddr.phone}
+                  onChange={(e) => setNewAddr({ ...newAddr, phone: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group full">
+                <label>Street / Flat / Building No *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Flat B29, Sardar Patel Nagar"
+                  value={newAddr.street}
+                  onChange={(e) => setNewAddr({ ...newAddr, street: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Area / Locality</label>
+                <input 
+                  type="text" 
+                  placeholder="Govindpur Road"
+                  value={newAddr.area}
+                  onChange={(e) => setNewAddr({ ...newAddr, area: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>City *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Dhanbad"
+                  value={newAddr.city}
+                  onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>State *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Jharkhand"
+                  value={newAddr.state}
+                  onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Pincode *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="826001"
+                  value={newAddr.pincode}
+                  onChange={(e) => setNewAddr({ ...newAddr, pincode: e.target.value })}
+                />
+              </div>
+
+              <div className="form-actions full">
+                <button type="button" className="cancel-btn" onClick={() => setShowAddressModal(false)}>Cancel</button>
+                <button type="submit" className="save-addr-btn">SAVE ADDRESS & DELIVER</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

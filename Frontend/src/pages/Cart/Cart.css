@@ -57,7 +57,7 @@
   cursor: pointer;
 }
 
-/* Swiggy Empty Cart Display (Screenshot 5) */
+/* Swiggy Empty Cart Display */
 .swiggy-empty-cart-container {
   max-width: 600px;
   margin: 80px auto 40px;
@@ -139,7 +139,7 @@
   transform: translateY(-2px);
 }
 
-/* Swiggy Checkout Grid Layout (Screenshots 1, 2, 3) */
+/* Swiggy Checkout Grid Layout */
 .swiggy-checkout-main {
   max-width: 1200px;
   margin: 30px auto;
@@ -240,6 +240,26 @@
   line-height: 1.4;
 }
 
+.no-saved-addr-prompt {
+  background: #f8fafc;
+  padding: 20px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+.add-new-btn-green {
+  background: #60b246;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
 .address-cards-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -255,6 +275,7 @@
   flex-direction: column;
   gap: 8px;
   position: relative;
+  cursor: pointer;
 }
 
 .address-card.selected {
@@ -283,7 +304,7 @@
 }
 
 .deliver-here-btn {
-  background: #60b246;
+  background: #cbd5e1;
   color: white;
   border: none;
   padding: 10px;
@@ -291,6 +312,10 @@
   font-size: 12px;
   cursor: pointer;
   margin-top: 10px;
+}
+
+.deliver-here-btn.active {
+  background: #60b246;
 }
 
 .add-new-btn {
@@ -301,7 +326,7 @@
   font-weight: 800;
   font-size: 12px;
   cursor: pointer;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 /* Right Sidebar Order Summary */
@@ -324,11 +349,15 @@
   border-bottom: 1px solid #f1f5f9;
 }
 
-.summary-rest-img {
-  width: 48px;
-  height: 48px;
+.rest-icon-badge {
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
-  object-fit: cover;
+  background: #fff5f5;
+  border: 1px solid #ffe3e3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .summary-restaurant-header h4 {
@@ -362,12 +391,16 @@
 .item-name-box {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   flex: 1;
 }
 
-.veg-icon {
-  font-size: 12px;
+.item-thumb-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #f1f5f9;
 }
 
 .item-name-str {
@@ -462,6 +495,13 @@
   cursor: pointer;
 }
 
+.coupon-error-text {
+  font-size: 11px;
+  color: #ef4444;
+  margin: 4px 0 0 0;
+  font-weight: 600;
+}
+
 .bill-details-section h5 {
   margin: 0 0 12px 0;
   font-size: 13px;
@@ -513,4 +553,138 @@
 
 .swiggy-pay-btn:hover {
   transform: translateY(-2px);
+}
+
+/* Address Form Modal */
+.address-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.address-modal-card {
+  background: white;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.close-modal {
+  cursor: pointer;
+  color: #64748b;
+}
+
+.address-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full {
+  grid-column: span 2;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.form-group input {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: #60b246;
+}
+
+.tag-select-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.tag-select-buttons button {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tag-select-buttons button.active {
+  background: #e6f4ea;
+  border-color: #60b246;
+  color: #60b246;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cancel-btn {
+  flex: 1;
+  background: #f1f5f9;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.save-addr-btn {
+  flex: 2;
+  background: #60b246;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
 }

@@ -59,4 +59,33 @@ const registerUser = async (req,res)=>{
     }
 }
 
-export {loginUser,registerUser}
+const saveAddress = async (req, res) => {
+  try {
+    const { address } = req.body;
+    const user = await userModel.findById(req.userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const addresses = user.addresses || [];
+    addresses.push({ ...address, id: Date.now().toString() });
+
+    await userModel.findByIdAndUpdate(req.userId, { addresses });
+    res.json({ success: true, message: "Address saved successfully!", addresses });
+  } catch (error) {
+    console.error("Save address error:", error);
+    res.status(500).json({ success: false, message: "Failed to save address" });
+  }
+};
+
+const getAddresses = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    res.json({ success: true, addresses: user.addresses || [] });
+  } catch (error) {
+    console.error("Get addresses error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch addresses" });
+  }
+};
+
+export { loginUser, registerUser, saveAddress, getAddresses };
