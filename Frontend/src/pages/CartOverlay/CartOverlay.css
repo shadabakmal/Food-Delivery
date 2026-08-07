@@ -1,0 +1,59 @@
+/* Container to make the overlay appear at the top-center */
+.cart-container-wrapper {
+  position: absolute; /* Place it relative to the image banner */
+  top: 15px; /* Adjust as needed */
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  min-width: 300px; /* To prevent it from being too squished */
+  z-index: 20; /* Ensure it stays above the banner content */
+}
+
+/* The actual cart bar styling */
+.cart-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background-color: white;
+  padding: 10px 15px;
+  border-radius: 30px; /* Fully rounded corners */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); /* Light shadow for depth */
+}
+
+/* Left side group: image + text */
+.cart-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Image thumbnail circle */
+.restaurant-thumb-wrapper {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ddd; /* Gray placeholder */
+  /* Or use a background image: background-image: url('...'); background-size: cover; */
+}
+
+/* Quantity text styling */
+.cart-info p {
+  color: black;
+  font-size: 15px;
+  margin: 0;
+  white-space: nowrap; /* Prevent wrap in the bar */
+}
+
+/* Red button styling */
+.view-cart-btn {
+  background-color: #f44336; /* Red color from example */
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}

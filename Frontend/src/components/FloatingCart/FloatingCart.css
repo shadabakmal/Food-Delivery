@@ -1,0 +1,103 @@
+.floating-cart-wrapper {
+    position: fixed;
+    bottom: 30px; /* Floating at the bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 450px;
+    z-index: 9999; /* Ensure it stays on top of everything */
+}
+
+.floating-cart-bar {
+    background-color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 50px;
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12);
+    border: 1px solid #f1f1f1;
+}
+
+.cart-left-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+/* Generic Logo Style */
+.generic-food-logo {
+    width: 40px;
+    height: 40px;
+    background-color: #fff0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    border: 1px solid #ffebeb;
+}
+
+.res-name {
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0;
+    color: #1c1c1c;
+}
+
+.view-menu-link {
+    font-size: 12px;
+    margin: 0;
+    color: #ff4d67;
+    font-weight: 600;
+}
+
+.cart-right-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.view-cart-btn {
+    background-color: #ff4d67; /* Tomato red/pink */
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 6px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.view-cart-btn span {
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.view-cart-btn small {
+    font-size: 10px;
+    opacity: 0.9;
+}
+
+/* The Gray Cross Circle */
+.cart-close-btn {
+    width: 26px;
+    height: 26px;
+    background-color: #f1f1f1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    font-size: 20px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.cart-close-btn:hover {
+    background-color: #e2e2e2;
+    color: #333;
+}
