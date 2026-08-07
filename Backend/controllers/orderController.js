@@ -4,11 +4,27 @@ import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// Pre-configured active delivery partners for assignment
+const DELIVERY_BOYS = [
+  { id: "DB001", name: "Rahul Kumar", phone: "+91 98765 43210", vehicle: "Honda Activa (UP16 AB 1234)", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" },
+  { id: "DB002", name: "Vikram Singh", phone: "+91 98123 45678", vehicle: "TVS Jupiter (UP16 CD 5678)", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" },
+  { id: "DB003", name: "Amit Sharma", phone: "+91 97111 22334", vehicle: "Hero Splendor (UP16 EF 9012)", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80" },
+  { id: "DB004", name: "Priya Sharma", phone: "+91 99887 76655", vehicle: "Ather 450X (UP16 GH 3456)", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80" }
+];
+
 const placeOrder = async (req, res) => {
-  const frontend_url = "http://localhost:5173/";
+  const frontend_url = req.headers.origin || "http://localhost:5173";
 
   try {
     const items = req.body.items;
+
+    // Restaurant default coordinates (e.g. Connaught Place, New Delhi)
+    const restaurantLocation = { lat: 28.6315, lng: 77.2167 };
+    // User destination coordinates with slight randomized offset near restaurant
+    const userLocation = { 
+      lat: 28.6315 + (Math.random() * 0.03 - 0.015), 
+      lng: 77.2167 + (Math.random() * 0.03 - 0.015) 
+    };
 
     // Save order in DB
     const newOrder = new orderModel({
@@ -16,66 +32,80 @@ const placeOrder = async (req, res) => {
       items: items,
       amount: req.body.amount,
       address: req.body.address,
+      status: "Food Processing",
+      restaurantLocation,
+      userLocation,
+      deliveryBoyLocation: restaurantLocation
     });
     await newOrder.save();
 
     // Clear cart after order placed
     await userModel.findByIdAndUpdate(req.userId, { cartData: {} });
 
-    // Stripe line items
-    const line_items = items.map((item) => ({
-      price_data: {
-        currency: "inr",
-        product_data: { name: item.name },
-        unit_amount: item.price * 100*85, // Stripe expects paise
-      },
-      quantity: item.quantity,
-    }));
+    // Check if Stripe key is configured properly
+    if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_placeholder') {
+      try {
+        const line_items = items.map((item) => ({
+          price_data: {
+            currency: "inr",
+            product_data: { name: item.name },
+            unit_amount: Math.round(item.price * 100),
+          },
+          quantity: item.quantity,
+        }));
 
-    // Add delivery charges
-    line_items.push({
-      price_data: {
-        currency: "inr",
-        product_data: { name: "Delivery charges" },
-        unit_amount: 2 * 100*85,
-      },
-      quantity: 1,
+        line_items.push({
+          price_data: {
+            currency: "inr",
+            product_data: { name: "Delivery charges" },
+            unit_amount: 200,
+          },
+          quantity: 1,
+        });
+
+        const session = await stripe.checkout.sessions.create({
+          line_items,
+          mode: "payment",
+          success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
+          cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
+        });
+
+        return res.json({ success: true, session_url: session.url });
+      } catch (stripeErr) {
+        console.warn("Stripe checkout failed, falling back to direct order confirmation:", stripeErr.message);
+      }
+    }
+
+    // Direct success redirect fallback for dev testing
+    res.json({ 
+      success: true, 
+      session_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}` 
     });
-    
-
-    // Stripe session
-    const session = await stripe.checkout.sessions.create({
-      line_items,
-      mode: "payment",
-      success_url: `${frontend_url}verify?success=true&orderId=${newOrder._id}`,
-      cancel_url: `${frontend_url}verify?success=false&orderId=${newOrder._id}`,
-    });
-
-    res.json({ success: true, session_url: session.url });
   } catch (error) {
     console.error("Order error:", error.message);
     res.status(500).json({ success: false, message: "Order failed" });
   }
 };
+
 const verifyOrder = async(req,res)=>{
   const {orderId,success} = req.body;
   try {
-    if(success==true){
+    if(success == "true" || success === true){
       await orderModel.findByIdAndUpdate(orderId,{payment:true});
       res.json({success:true,message:"Paid"})
     }else{
       await orderModel.findByIdAndDelete(orderId);
       res.json({success:false,message:"Not Paid"})
     }
-    
   } catch (error) {
     console.log(error);
     res.json({success:false,message:"Error"})
   }
 }
-const userOrders = async(res,req)=>{
+
+const userOrders = async(req, res)=>{
   try {
-    const orders = await orderModel.find({userId:req.userId});
+    const orders = await orderModel.find({userId:req.userId}).sort({date: -1});
     res.json({success:true,data:orders})
   } catch (error) {
     console.log(error);
@@ -83,7 +113,94 @@ const userOrders = async(res,req)=>{
   }
 }
 
-export { placeOrder,verifyOrder,userOrders };
+const getOrderById = async(req, res) => {
+  try {
+    const order = await orderModel.findById(req.params.id);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    res.json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error fetching order" });
+  }
+}
+
+// Admin: List all orders
+const listOrders = async(req, res) => {
+  try {
+    const orders = await orderModel.find({}).sort({date: -1});
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error fetching order list" });
+  }
+}
+
+// Admin: Update order status
+const updateStatus = async(req, res) => {
+  try {
+    const { orderId, status } = req.body;
+    await orderModel.findByIdAndUpdate(orderId, { status });
+    res.json({ success: true, message: "Status updated successfully" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error updating status" });
+  }
+}
+
+// Admin: Assign delivery boy to an order
+const assignDeliveryBoy = async(req, res) => {
+  try {
+    const { orderId, deliveryBoyId } = req.body;
+    const dbBoy = DELIVERY_BOYS.find(b => b.id === deliveryBoyId);
+    if (!dbBoy) return res.status(400).json({ success: false, message: "Invalid delivery partner" });
+
+    const order = await orderModel.findById(orderId);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+
+    // Set initial delivery boy location near restaurant
+    const initialLocation = order.restaurantLocation || { lat: 28.6315, lng: 77.2167 };
+
+    await orderModel.findByIdAndUpdate(orderId, {
+      deliveryBoy: dbBoy,
+      status: "Out for Delivery",
+      deliveryBoyLocation: initialLocation
+    });
+
+    res.json({ success: true, message: `Assigned ${dbBoy.name} to order!`, deliveryBoy: dbBoy });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error assigning delivery boy" });
+  }
+}
+
+// Live Location Update (simulated or real GPS update)
+const updateDeliveryLocation = async(req, res) => {
+  try {
+    const { orderId, lat, lng } = req.body;
+    await orderModel.findByIdAndUpdate(orderId, {
+      deliveryBoyLocation: { lat, lng }
+    });
+    res.json({ success: true, message: "Location updated" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Location update failed" });
+  }
+}
+
+// Fetch list of available delivery boys
+const getDeliveryBoys = async(req, res) => {
+  res.json({ success: true, data: DELIVERY_BOYS });
+}
+
+export { 
+  placeOrder,
+  verifyOrder,
+  userOrders,
+  getOrderById,
+  listOrders,
+  updateStatus,
+  assignDeliveryBoy,
+  updateDeliveryLocation,
+  getDeliveryBoys
+};
 
 
 

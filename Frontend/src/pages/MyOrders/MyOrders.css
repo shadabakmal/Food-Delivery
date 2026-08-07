@@ -1,37 +1,110 @@
-.my-orders{
-    margin: 50px 0px;
+.my-orders {
+    margin: 40px auto;
+    max-width: 1100px;
+    padding: 0 20px;
 }
-.container{
+
+.my-orders h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2b2b2b;
+    margin-bottom: 20px;
+}
+
+.container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    margin-top: 30px;
+    gap: 16px;
 }
-.my-orders-order{
+
+.my-orders-order {
     display: grid;
-    grid-template-columns: 0.5fr 2fr 1fr 1fr 2fr 1fr;
+    grid-template-columns: 50px 2fr 1fr 1fr 1.5fr 2fr;
     align-items: center;
-    gap: 30px;
+    gap: 20px;
     font-size: 14px;
-    padding: 10px 20px;
-    color: #454545;
-    border: 1px solid tomato;
+    padding: 16px 24px;
+    color: #333;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.my-orders-order img{
-    width: 50px;
+
+.my-orders-order:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
-.my-orders-order p span{
-    color: tomato;
+
+.my-orders-order img {
+    width: 44px;
 }
-.my-orders-order p b{
-    font-weight: 500;
-    color: #454545;
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
-.my-orders-order button{
-    border: none;
-    padding: 12px 0px;
-    border-radius: 4px;
-    background-color: #ffe1e1;
+
+.status-dot {
+    font-size: 14px;
+}
+
+.status-dot.active {
+    color: #ff9f1c;
+}
+
+.status-dot.delivered {
+    color: #2a9d8f;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.refresh-btn {
+    border: 1px solid #cbd5e1;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background-color: #f8fafc;
     cursor: pointer;
-    color: #454545 ;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+    background-color: #f1f5f9;
+}
+
+.live-map-btn {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+    cursor: pointer;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 12px;
+    box-shadow: 0 4px 10px rgba(230, 57, 70, 0.25);
+    transition: transform 0.2s ease;
+}
+
+.live-map-btn:hover {
+    transform: scale(1.03);
+}
+
+@media (max-width: 768px) {
+    .my-orders-order {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .order-actions {
+        justify-content: center;
+    }
 }

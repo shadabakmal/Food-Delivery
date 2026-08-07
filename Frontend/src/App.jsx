@@ -9,6 +9,7 @@ import Footer from './Footer/Footer'
 import LoginPopup from './components/LoginPopup/LoginPopup'
 import Verify from './pages/verify/Verify'
 import MyOrders from './pages/MyOrders/MyOrders'
+import TrackOrder from './pages/TrackOrder/TrackOrder'
 
 export default function App() {
   const [showLogin,setShowLogin] = useState(false)
@@ -23,7 +24,8 @@ export default function App() {
         <Route path='/cart' element={<Cart/>}/>
         <Route path='/order' element={<PlaceOrder/>}/>
         <Route path='/verify' element={<Verify/>}/>
-        <Route path='/MYOrders' element={<MyOrders/>}/>
+        <Route path='/myorders' element={<MyOrders/>}/>
+        <Route path='/track/:orderId' element={<TrackOrder/>}/>
       </Routes>
     </div>
     <Footer/>

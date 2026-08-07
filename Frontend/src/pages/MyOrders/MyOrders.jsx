@@ -1,47 +1,77 @@
-import React from 'react'
-import './MyOrders.css'
-import { useState } from 'react'
-import { useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import './MyOrders.css';
 import { StoreContext } from '../../Context/StoreContext';
 import axios from 'axios';
-import { useEffect } from 'react';
 import { assets } from '../../assets/frontend_assets/assets';
+import { useNavigate } from 'react-router-dom';
+
 export default function MyOrders() {
-    const {url,token} = useContext(StoreContext);
-    const [data,setData] = useState([]);
+    const { url, token } = useContext(StoreContext);
+    const [data, setData] = useState([]);
+    const navigate = useNavigate();
 
-    const fetchOrders = async()=>{
-        const response = await axios.post(url + "api/order/userOrders",{},{headers:{token}});
-        setData(response.data.data);
-        console.log(response.data.data);
-    }
-    useEffect(()=>{
-       if(token) fetchOrders();
-    },[token])
+    const fetchOrders = async () => {
+        try {
+            const response = await axios.post(
+                url + "api/order/userorders",
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (response.data.success) {
+                setData(response.data.data);
+            }
+        } catch (error) {
+            console.error("Error fetching user orders:", error);
+        }
+    };
 
-  return (
-    <div className='my-orders'>
-        <h2>My Orders</h2>
-        <div className="contaner">
-            {data.map((orderModel,index)=>{
-                return (
-                    <div key={index} className="my-orders-order">
-                        <img src={assets.parcel_icon} alt="" />
-                        <p>{order.items.map((item,index)=>{
-                            if(index === order.items.length-1){
-                                return item.name + "x" + item.quantity;
-                            }else{
-                                 return item.name + "x" + item.quantity + ',';
-                            }
-                        })} </p>
-                        <p>${order.amount}.00 </p>
-                        <p>Items: {order.items.length} </p>
-                        <p><span>&#x25cf;</span> <b>{order.status}</b></p>
-                        <button>Track Order</button>
+    useEffect(() => {
+        if (token) fetchOrders();
+    }, [token]);
+
+    return (
+        <div className='my-orders'>
+            <h2>My Orders</h2>
+            <div className="container">
+                {data.length === 0 ? (
+                    <div className="no-orders">
+                        <p>No orders placed yet!</p>
                     </div>
-                )
-            })}
+                ) : (
+                    data.map((order, index) => {
+                        return (
+                            <div key={index} className="my-orders-order">
+                                <img src={assets.parcel_icon} alt="Parcel Icon" />
+                                <p className="items-summary">
+                                    {order.items.map((item, idx) => {
+                                        if (idx === order.items.length - 1) {
+                                            return item.name + " x " + item.quantity;
+                                        } else {
+                                            return item.name + " x " + item.quantity + ', ';
+                                        }
+                                    })}
+                                </p>
+                                <p className="amount">${order.amount.toFixed(2)}</p>
+                                <p className="items-count">Items: {order.items.length}</p>
+                                <p className="status-badge">
+                                    <span className={order.status === 'Delivered' ? 'status-dot delivered' : 'status-dot active'}>&#x25cf;</span> 
+                                    <b>{order.status}</b>
+                                </p>
+
+                                <div className="order-actions">
+                                    <button onClick={fetchOrders} className="refresh-btn">Track Status</button>
+                                    <button 
+                                        onClick={() => navigate(`/track/${order._id}`)} 
+                                        className="live-map-btn"
+                                    >
+                                        🛵 Live Tracking
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
         </div>
-    </div>
-  )
+    );
 }
