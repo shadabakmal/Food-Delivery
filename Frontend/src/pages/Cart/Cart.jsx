@@ -279,25 +279,24 @@ export default function Cart({ setShowLogin }) {
         let response = await axios.post(
           url + "api/order/place",
           orderData,
-          { headers: { Authorization: `Bearer ${token}`, token: token }, timeout: 4500 }
+          { headers: { Authorization: `Bearer ${token}`, token: token }, timeout: 8000 }
         );
 
-        if (response && response.data && response.data.session_url) {
-          if (response.data.session_url.startsWith("http")) {
-            window.location.href = response.data.session_url;
-            return;
-          } else {
-            navigate(response.data.session_url);
-            return;
-          }
+        if (response && response.data && response.data.success && response.data.session_url) {
+          // EXCLUSIVE MANDATORY DIRECT REDIRECT TO OFFICIAL STRIPE DOMAIN (checkout.stripe.com)
+          window.location.href = response.data.session_url;
+          return;
+        }
+
+        if (response && response.data && !response.data.success) {
+          alert("⚠️ STRIPE API ERROR:\n\n" + response.data.message + "\n\nPlease make sure your STRIPE_SECRET_KEY (sk_test_...) is added to Vercel Backend Settings -> Environment Variables (food-delivery-backend-psi-lac)!");
+          return;
         }
       } catch (err) {
-        console.warn("Backend API response delay, opening Stripe checkout interface:", err.message);
+        console.error("Backend Stripe API error:", err);
+        alert("Failed to connect to backend payment server: " + err.message);
+        return;
       }
-
-      // Smooth fallback redirect to Stripe Checkout page
-      navigate(`/stripe-checkout?orderId=${fallbackOrderId}&amount=${finalTotal}`);
-      return;
     }
 
     // Cash on Delivery direct verification

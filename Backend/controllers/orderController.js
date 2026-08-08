@@ -54,53 +54,52 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    // Stripe Online Payment
+    // Stripe Online Payment - EXCLUSIVELY OFFICIAL STRIPE CHECKOUT SESSIONS
     const activeStripeKey = process.env.STRIPE_SECRET_KEY;
-    if (activeStripeKey && activeStripeKey.trim().length > 10) {
-      try {
-        const stripeInstance = new Stripe(activeStripeKey.trim());
-        const line_items = items.map((item) => ({
-          price_data: {
-            currency: "inr",
-            product_data: { name: item.name },
-            unit_amount: Math.round(item.price * 100),
-          },
-          quantity: item.quantity,
-        }));
-
-        line_items.push({
-          price_data: {
-            currency: "inr",
-            product_data: { name: "Delivery & Service charges" },
-            unit_amount: 4000,
-          },
-          quantity: 1,
-        });
-
-        const session = await stripeInstance.checkout.sessions.create({
-          line_items,
-          mode: "payment",
-          success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-          cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
-        });
-
-        return res.json({ success: true, session_url: session.url });
-      } catch (stripeErr) {
-        console.warn("Stripe creation warning:", stripeErr.message);
-      }
+    if (!activeStripeKey || activeStripeKey.trim().length < 10) {
+      return res.json({
+        success: false,
+        message: "STRIPE_SECRET_KEY environment variable is missing on Vercel backend."
+      });
     }
 
-    // Stripe fallback redirect to checkout page
-    return res.json({ 
-      success: true, 
-      session_url: `${frontend_url}/stripe-checkout?orderId=${newOrder._id}&amount=${req.body.amount || 250}` 
-    });
+    try {
+      const stripeInstance = new Stripe(activeStripeKey.trim());
+      const line_items = items.map((item) => ({
+        price_data: {
+          currency: "inr",
+          product_data: { name: item.name },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.quantity,
+      }));
+
+      line_items.push({
+        price_data: {
+          currency: "inr",
+          product_data: { name: "Delivery Charges" },
+          unit_amount: 4000,
+        },
+        quantity: 1,
+      });
+
+      const session = await stripeInstance.checkout.sessions.create({
+        line_items,
+        mode: "payment",
+        success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
+        cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
+      });
+
+      return res.json({ success: true, session_url: session.url });
+    } catch (stripeErr) {
+      console.error("Stripe session creation error:", stripeErr.message);
+      return res.json({ success: false, message: "Stripe error: " + stripeErr.message });
+    }
   } catch (error) {
     console.error("Order placement error:", error.message);
-    const fallbackId = "ORD" + Math.floor(100000 + Math.random() * 900000);
-    return res.json({
-      success: true,
-      session_url: `${frontend_url}/stripe-checkout?orderId=${fallbackId}&amount=250`
+    return res.status(500).json({
+      success: false,
+      message: "Order error: " + error.message
     });
   }
 };
