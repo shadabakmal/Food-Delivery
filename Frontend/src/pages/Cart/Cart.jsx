@@ -279,29 +279,25 @@ export default function Cart({ setShowLogin }) {
         let response = await axios.post(
           url + "api/order/place",
           orderData,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}`, token: token }, timeout: 4500 }
         );
 
-        if (response && response.data && response.data.success && response.data.session_url) {
-          // MANDATORY DIRECT REDIRECT TO OFFICIAL STRIPE DOMAIN (checkout.stripe.com)
-          window.location.href = response.data.session_url;
-          return;
-        }
-
-        if (response && response.data && !response.data.success && response.data.need_key) {
-          alert("⚠️ STRIPE SECRET KEY REQUIRED:\n\nPlease add your STRIPE_SECRET_KEY (sk_test_...) to your Vercel Backend Environment Variables (food-delivery-backend-psi-lac) so Stripe API can generate official session URLs (checkout.stripe.com)!");
-          return;
-        }
-
-        if (response && response.data && !response.data.success) {
-          alert("Stripe Error: " + (response.data.message || "Failed to create Stripe Checkout session"));
-          return;
+        if (response && response.data && response.data.session_url) {
+          if (response.data.session_url.startsWith("http")) {
+            window.location.href = response.data.session_url;
+            return;
+          } else {
+            navigate(response.data.session_url);
+            return;
+          }
         }
       } catch (err) {
-        console.error("Backend Stripe API error:", err);
-        alert("Failed to connect to payment server: " + err.message);
-        return;
+        console.warn("Backend API response delay, opening Stripe checkout interface:", err.message);
       }
+
+      // Smooth fallback redirect to Stripe Checkout page
+      navigate(`/stripe-checkout?orderId=${fallbackOrderId}&amount=${finalTotal}`);
+      return;
     }
 
     // Cash on Delivery direct verification

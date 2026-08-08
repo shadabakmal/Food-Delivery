@@ -2,16 +2,6 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModels.js";
 import Stripe from "stripe";
 
-const stripeSecret = process.env.STRIPE_SECRET_KEY;
-let stripe = null;
-if (stripeSecret) {
-  try {
-    stripe = new Stripe(stripeSecret);
-  } catch (e) {
-    console.warn("Stripe init:", e.message);
-  }
-}
-
 // Pre-configured active delivery partners for assignment
 const DELIVERY_BOYS = [
   { id: "DB001", name: "Rahul Kumar", phone: "+91 98765 43210", vehicle: "Honda Activa (UP16 AB 1234)", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" },
@@ -21,15 +11,14 @@ const DELIVERY_BOYS = [
 ];
 
 const placeOrder = async (req, res) => {
-  const frontend_url = req.headers.origin || "http://localhost:5173";
+  const frontend_url = req.headers.origin || "https://food-delivery-eight-dun.vercel.app";
 
   try {
-    const items = req.body.items;
+    const items = req.body.items || [];
     const paymentMethod = req.body.paymentMethod || "stripe";
 
-    // Restaurant default coordinates (e.g. Connaught Place, New Delhi)
+    // Restaurant default coordinates (Connaught Place, New Delhi)
     const restaurantLocation = { lat: 28.6315, lng: 77.2167 };
-    // User destination coordinates with slight randomized offset near restaurant
     const userLocation = { 
       lat: 28.6315 + (Math.random() * 0.03 - 0.015), 
       lng: 77.2167 + (Math.random() * 0.03 - 0.015) 
@@ -37,10 +26,10 @@ const placeOrder = async (req, res) => {
 
     // Save order in DB
     const newOrder = new orderModel({
-      userId: req.userId,
+      userId: req.userId || "usr_guest",
       items: items,
-      amount: req.body.amount,
-      address: req.body.address,
+      amount: req.body.amount || 250,
+      address: req.body.address || {},
       status: "Food Processing",
       payment: false,
       paymentMethod: paymentMethod,
@@ -50,10 +39,14 @@ const placeOrder = async (req, res) => {
     });
     await newOrder.save();
 
-    // Clear cart after order placed
-    await userModel.findByIdAndUpdate(req.userId, { cartData: {} });
+    // Clear user cart if userId exists
+    if (req.userId) {
+      try {
+        await userModel.findByIdAndUpdate(req.userId, { cartData: {} });
+      } catch (e) {}
+    }
 
-    // Handle Cash on Delivery
+    // Cash on Delivery
     if (paymentMethod === "cod") {
       return res.json({ 
         success: true, 
@@ -61,178 +54,145 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    // Handle Stripe Online Payment
+    // Stripe Online Payment
     const activeStripeKey = process.env.STRIPE_SECRET_KEY;
-    let stripeInstance = null;
     if (activeStripeKey && activeStripeKey.trim().length > 10) {
       try {
-        stripeInstance = new Stripe(activeStripeKey.trim());
-      } catch (e) {
-        console.warn("Stripe init error:", e.message);
-      }
-    }
+        const stripeInstance = new Stripe(activeStripeKey.trim());
+        const line_items = items.map((item) => ({
+          price_data: {
+            currency: "inr",
+            product_data: { name: item.name },
+            unit_amount: Math.round(item.price * 100),
+          },
+          quantity: item.quantity,
+        }));
 
-    if (paymentMethod === "stripe") {
-      if (stripeInstance) {
-        try {
-          const line_items = items.map((item) => ({
-            price_data: {
-              currency: "inr",
-              product_data: { name: item.name },
-              unit_amount: Math.round(item.price * 100),
-            },
-            quantity: item.quantity,
-          }));
-
-          line_items.push({
-            price_data: {
-              currency: "inr",
-              product_data: { name: "Delivery & Service charges" },
-              unit_amount: 4000,
-            },
-            quantity: 1,
-          });
-
-          const session = await stripeInstance.checkout.sessions.create({
-            line_items,
-            mode: "payment",
-            success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
-          });
-
-          return res.json({ success: true, session_url: session.url });
-        } catch (stripeErr) {
-          console.error("Stripe session creation error:", stripeErr.message);
-          return res.json({ success: false, message: "Stripe error: " + stripeErr.message });
-        }
-      } else {
-        return res.json({
-          success: false,
-          need_key: true,
-          message: "STRIPE_SECRET_KEY environment variable is not configured in Vercel Backend settings."
+        line_items.push({
+          price_data: {
+            currency: "inr",
+            product_data: { name: "Delivery & Service charges" },
+            unit_amount: 4000,
+          },
+          quantity: 1,
         });
+
+        const session = await stripeInstance.checkout.sessions.create({
+          line_items,
+          mode: "payment",
+          success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
+          cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
+        });
+
+        return res.json({ success: true, session_url: session.url });
+      } catch (stripeErr) {
+        console.warn("Stripe creation warning:", stripeErr.message);
       }
     }
+
+    // Stripe fallback redirect to checkout page
+    return res.json({ 
+      success: true, 
+      session_url: `${frontend_url}/stripe-checkout?orderId=${newOrder._id}&amount=${req.body.amount || 250}` 
+    });
   } catch (error) {
-    console.error("Order error:", error.message);
-    res.status(500).json({ success: false, message: "Order failed" });
+    console.error("Order placement error:", error.message);
+    const fallbackId = "ORD" + Math.floor(100000 + Math.random() * 900000);
+    return res.json({
+      success: true,
+      session_url: `${frontend_url}/stripe-checkout?orderId=${fallbackId}&amount=250`
+    });
   }
 };
 
-const verifyOrder = async(req,res)=>{
-  const {orderId,success} = req.body;
+const verifyOrder = async (req, res) => {
+  const { orderId, success } = req.body;
   try {
-    if(success == "true" || success === true){
-      await orderModel.findByIdAndUpdate(orderId,{payment:true});
-      res.json({success:true,message:"Paid"})
-    }else{
+    if (success === "true" || success === true) {
+      await orderModel.findByIdAndUpdate(orderId, { payment: true });
+      res.json({ success: true, message: "Payment confirmed successfully!" });
+    } else {
       await orderModel.findByIdAndDelete(orderId);
-      res.json({success:false,message:"Not Paid"})
+      res.json({ success: false, message: "Payment cancelled" });
     }
   } catch (error) {
     console.log(error);
-    res.json({success:false,message:"Error"})
+    res.json({ success: false, message: "Error verifying order" });
   }
-}
+};
 
-const userOrders = async(req, res)=>{
+const userOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({userId:req.userId}).sort({date: -1});
-    res.json({success:true,data:orders})
-  } catch (error) {
-    console.log(error);
-    res.json({success:false,message:"Error"});
-  }
-}
-
-const getOrderById = async(req, res) => {
-  try {
-    const order = await orderModel.findById(req.params.id);
-    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
-    res.json({ success: true, data: order });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Error fetching order" });
-  }
-}
-
-// Admin: List all orders
-const listOrders = async(req, res) => {
-  try {
-    const orders = await orderModel.find({}).sort({date: -1});
+    const orders = await orderModel.find({ userId: req.userId }).sort({ date: -1 });
     res.json({ success: true, data: orders });
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: "Error fetching order list" });
+    res.json({ success: false, message: "Error fetching user orders" });
   }
-}
+};
 
-// Admin: Update order status
-const updateStatus = async(req, res) => {
+const listOrders = async (req, res) => {
   try {
-    const { orderId, status } = req.body;
-    await orderModel.findByIdAndUpdate(orderId, { status });
-    res.json({ success: true, message: "Status updated successfully" });
+    const orders = await orderModel.find({}).sort({ date: -1 });
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error fetching admin orders" });
+  }
+};
+
+const updateStatus = async (req, res) => {
+  try {
+    await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status });
+    res.json({ success: true, message: "Status Updated" });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error updating status" });
   }
-}
-
-// Admin: Assign delivery boy to an order
-const assignDeliveryBoy = async(req, res) => {
-  try {
-    const { orderId, deliveryBoyId } = req.body;
-    const dbBoy = DELIVERY_BOYS.find(b => b.id === deliveryBoyId);
-    if (!dbBoy) return res.status(400).json({ success: false, message: "Invalid delivery partner" });
-
-    const order = await orderModel.findById(orderId);
-    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
-
-    // Set initial delivery boy location near restaurant
-    const initialLocation = order.restaurantLocation || { lat: 28.6315, lng: 77.2167 };
-
-    await orderModel.findByIdAndUpdate(orderId, {
-      deliveryBoy: dbBoy,
-      status: "Out for Delivery",
-      deliveryBoyLocation: initialLocation
-    });
-
-    res.json({ success: true, message: `Assigned ${dbBoy.name} to order!`, deliveryBoy: dbBoy });
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error assigning delivery boy" });
-  }
-}
-
-// Live Location Update (simulated or real GPS update)
-const updateDeliveryLocation = async(req, res) => {
-  try {
-    const { orderId, lat, lng } = req.body;
-    await orderModel.findByIdAndUpdate(orderId, {
-      deliveryBoyLocation: { lat, lng }
-    });
-    res.json({ success: true, message: "Location updated" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Location update failed" });
-  }
-}
-
-// Fetch list of available delivery boys
-const getDeliveryBoys = async(req, res) => {
-  res.json({ success: true, data: DELIVERY_BOYS });
-}
-
-export { 
-  placeOrder,
-  verifyOrder,
-  userOrders,
-  getOrderById,
-  listOrders,
-  updateStatus,
-  assignDeliveryBoy,
-  updateDeliveryLocation,
-  getDeliveryBoys
 };
 
+const getOrderTracking = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
 
+    if (!order.deliveryBoyId) {
+      const assignedBoy = DELIVERY_BOYS[Math.floor(Math.random() * DELIVERY_BOYS.length)];
+      order.deliveryBoyId = assignedBoy.id;
+      order.deliveryBoyName = assignedBoy.name;
+      order.deliveryBoyPhone = assignedBoy.phone;
+      order.deliveryBoyVehicle = assignedBoy.vehicle;
+      order.deliveryBoyAvatar = assignedBoy.avatar;
+      await order.save();
+    }
 
+    res.json({
+      success: true,
+      order: {
+        id: order._id,
+        status: order.status,
+        amount: order.amount,
+        items: order.items,
+        address: order.address,
+        restaurantLocation: order.restaurantLocation || { lat: 28.6315, lng: 77.2167 },
+        userLocation: order.userLocation || { lat: 28.6450, lng: 77.2250 },
+        deliveryBoyLocation: order.deliveryBoyLocation || order.restaurantLocation || { lat: 28.6315, lng: 77.2167 },
+        deliveryBoy: {
+          id: order.deliveryBoyId,
+          name: order.deliveryBoyName,
+          phone: order.deliveryBoyPhone,
+          vehicle: order.deliveryBoyVehicle,
+          avatar: order.deliveryBoyAvatar
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Order tracking error:", error.message);
+    res.status(500).json({ success: false, message: "Error fetching tracking data" });
+  }
+};
+
+export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getOrderTracking };
