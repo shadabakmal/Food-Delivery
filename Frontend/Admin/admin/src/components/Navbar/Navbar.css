@@ -1,12 +1,165 @@
-.navbar{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding:8px 4%;
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4%;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
 }
-.navbar .logo{
-    width: max(10%,80px);
+
+.brand-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
-.navbar .profile{
-    width: 40px
+
+.navbar .logo {
+  width: max(10%, 110px);
+}
+
+.admin-title-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff5f5;
+  color: #e63946;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.admin-profile-section {
+  position: relative;
+}
+
+.profile-pill-wrapper {
+  position: relative;
+}
+
+.profile-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-pill:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.profile-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e63946;
+}
+
+.profile-text-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.profile-role {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.chevron-icon {
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.chevron-icon.open {
+  transform: rotate(180deg);
+}
+
+.admin-dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 220px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e2e8f0;
+  padding: 12px;
+  z-index: 100;
+}
+
+.dropdown-user-header {
+  padding-bottom: 8px;
+}
+
+.user-email {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.status-online {
+  font-size: 11px;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.admin-dropdown-menu hr {
+  margin: 8px 0;
+  border: none;
+  border-top: 1px solid #f1f5f9;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #fef2f2;
+}
+
+.admin-signin-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #e63946;
+  color: white;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.admin-signin-btn:hover {
+  background: #d62828;
 }

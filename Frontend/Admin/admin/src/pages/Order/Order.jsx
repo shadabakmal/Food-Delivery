@@ -151,14 +151,16 @@ export default function Order({ url }) {
                   </div>
                 </div>
 
-                {/* Amount & Payment Status */}
+                {/* Amount in Rupees & Payment Status */}
                 <div className="payment-col">
                   <div className="amount-box">
                     <span className="amount-label">Total Amount</span>
-                    <span className="amount-val">${order.amount?.toFixed(2)}</span>
+                    <span className="amount-val" style={{ color: '#e63946', fontWeight: 800 }}>
+                      ₹{order.amount}
+                    </span>
                   </div>
                   <span className={`payment-tag ${order.payment ? 'paid' : 'pending'}`}>
-                    {order.payment ? "✓ Paid via Stripe" : "⏳ Payment Pending"}
+                    {order.payment ? "✓ Paid via Stripe" : "⏳ Payment Pending / Cash on Delivery"}
                   </span>
                 </div>
 
