@@ -5,9 +5,10 @@ import {Routes,Route} from 'react-router-dom'
 import Add from './pages/Add/Add'
 import List from './pages/List/List'
 import Order from './pages/Order/Order'
- import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
+
 export default function App() {
-  const url = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/").replace(/\/?$/, '/');
+  const url = (import.meta.env.VITE_BACKEND_URL || "https://food-delivery-backend-psi-lac.vercel.app/").replace(/\/?$/, '/');
   return (
     <div>
       <ToastContainer/>
@@ -16,6 +17,7 @@ export default function App() {
       <div className="app-content">
         <Sidebar/>
         <Routes>
+          <Route path='/' element={<List url={url}/>}/>
           <Route path='/add' element={<Add url={url}/>}/>
           <Route path='/list' element={<List url={url}/>}/>
           <Route path='/order' element={<Order url={url}/>}/>
@@ -24,4 +26,3 @@ export default function App() {
     </div>
   )
 }
-
