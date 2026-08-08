@@ -2,11 +2,20 @@ import React, { useEffect, useState } from 'react';
 import './Order.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Bike, CheckCircle, Clock, MapPin, Package, UserCheck, Play } from 'lucide-react';
+import { Bike, CheckCircle, Clock, MapPin, Package, UserCheck, Play, Lock } from 'lucide-react';
 
-export default function Order({ url }) {
+export default function Order({ url, adminToken, setShowLogin }) {
   const [orders, setOrders] = useState([]);
   const [deliveryBoys, setDeliveryBoys] = useState([]);
+
+  const checkAuth = (actionName) => {
+    if (!adminToken) {
+      toast.error(`🔒 Access Denied: Please log in as Admin to ${actionName}!`);
+      if (setShowLogin) setShowLogin(true);
+      return false;
+    }
+    return true;
+  };
 
   const fetchOrders = async () => {
     try {
@@ -18,7 +27,6 @@ export default function Order({ url }) {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Error fetching orders");
     }
   };
 
@@ -34,6 +42,7 @@ export default function Order({ url }) {
   };
 
   const statusHandler = async (event, orderId) => {
+    if (!checkAuth("update order status")) return;
     try {
       const response = await axios.post(url + "api/order/status", {
         orderId,
@@ -49,6 +58,7 @@ export default function Order({ url }) {
   };
 
   const assignDeliveryBoyHandler = async (orderId, deliveryBoyId) => {
+    if (!checkAuth("assign delivery riders")) return;
     if (!deliveryBoyId) return;
     try {
       const response = await axios.post(url + "api/order/assign", {
@@ -68,6 +78,7 @@ export default function Order({ url }) {
 
   // Simulate rider movement from Admin dashboard
   const simulateRiderMovement = async (order) => {
+    if (!checkAuth("run GPS live simulation")) return;
     if (!order.restaurantLocation || !order.userLocation) return;
     toast.info(`Simulating live movement for Order #${order._id.substring(order._id.length - 6)}`);
 
@@ -109,6 +120,30 @@ export default function Order({ url }) {
 
   return (
     <div className="admin-order-container">
+      {!adminToken && (
+        <div style={{
+          background: '#fff1f2',
+          border: '1px solid #fecdd3',
+          padding: '12px 20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#e63946', fontWeight: 700, fontSize: '13px' }}>
+            <Lock size={16} /> Order Status Updates & Delivery Rider Assignments are LOCKED. Log in to manage.
+          </div>
+          <button 
+            type="button"
+            onClick={() => setShowLogin && setShowLogin(true)}
+            style={{ background: '#e63946', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+          >
+            SIGN IN
+          </button>
+        </div>
+      )}
+
       <div className="admin-order-header">
         <h2><Package size={24} /> Order Management & Delivery Assignment</h2>
         <span className="order-count">{orders.length} Active Orders</span>
@@ -184,6 +219,8 @@ export default function Order({ url }) {
                       <select 
                         onChange={(e) => assignDeliveryBoyHandler(order._id, e.target.value)}
                         defaultValue=""
+                        disabled={!adminToken}
+                        style={{ cursor: adminToken ? 'pointer' : 'not-allowed', opacity: adminToken ? 1 : 0.6 }}
                       >
                         <option value="" disabled>-- Select Rider to Assign --</option>
                         {deliveryBoys.map((boy) => (
@@ -201,6 +238,8 @@ export default function Order({ url }) {
                       className="reassign-select"
                       onChange={(e) => assignDeliveryBoyHandler(order._id, e.target.value)}
                       defaultValue=""
+                      disabled={!adminToken}
+                      style={{ cursor: adminToken ? 'pointer' : 'not-allowed', opacity: adminToken ? 1 : 0.6 }}
                     >
                       <option value="" disabled>Change Delivery Partner...</option>
                       {deliveryBoys.map((boy) => (
@@ -219,6 +258,8 @@ export default function Order({ url }) {
                     className="status-select" 
                     onChange={(e) => statusHandler(e, order._id)} 
                     value={order.status}
+                    disabled={!adminToken}
+                    style={{ cursor: adminToken ? 'pointer' : 'not-allowed', opacity: adminToken ? 1 : 0.6 }}
                   >
                     <option value="Food Processing">Food Processing</option>
                     <option value="Order Confirmed">Order Confirmed</option>
@@ -230,6 +271,8 @@ export default function Order({ url }) {
                     <button 
                       className="admin-sim-btn"
                       onClick={() => simulateRiderMovement(order)}
+                      disabled={!adminToken}
+                      style={{ cursor: adminToken ? 'pointer' : 'not-allowed', opacity: adminToken ? 1 : 0.6 }}
                     >
                       <Play size={14} /> Run Live GPS Simulation
                     </button>

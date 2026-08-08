@@ -3,9 +3,9 @@ import './Add.css';
 import { assets } from '../../assets/admin_assets/assets';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { PlusCircle, Upload } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
-export default function Add({ url }) {
+export default function Add({ url, adminToken, setShowLogin }) {
   const [image, setImage] = useState(false);
   const [data, setData] = useState({
     name: "",
@@ -22,6 +22,13 @@ export default function Add({ url }) {
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+
+    if (!adminToken) {
+      toast.error("🔒 Access Denied: Please sign in as Admin to add items!");
+      if (setShowLogin) setShowLogin(true);
+      return;
+    }
+
     if (!data.name.trim()) {
       toast.error("Please enter a product name");
       return;
@@ -66,6 +73,30 @@ export default function Add({ url }) {
 
   return (
     <div className='add'>
+      {!adminToken && (
+        <div style={{
+          background: '#fff1f2',
+          border: '1px solid #fecdd3',
+          padding: '14px 20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#e63946', fontWeight: 700, fontSize: '13px' }}>
+            <Lock size={16} /> Adding food items is locked. Log in as Admin to enable.
+          </div>
+          <button 
+            type="button"
+            onClick={() => setShowLogin && setShowLogin(true)}
+            style={{ background: '#e63946', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+          >
+            SIGN IN
+          </button>
+        </div>
+      )}
+
       <form className='flex-col' onSubmit={onSubmitHandler}>
         <div className="add-img-upload flex-col">
           <p>Upload Image</p>
@@ -106,7 +137,9 @@ export default function Add({ url }) {
           </div>
         </div>
 
-        <button type='submit' className='add-btn'>ADD DISH TO MENU</button>
+        <button type='submit' className='add-btn' disabled={!adminToken} style={{ opacity: adminToken ? 1 : 0.6, cursor: adminToken ? 'pointer' : 'not-allowed' }}>
+          {adminToken ? 'ADD DISH TO MENU' : '🔒 LOG IN TO ADD DISH'}
+        </button>
       </form>
     </div>
   );

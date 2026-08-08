@@ -3,14 +3,13 @@ import './List.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { food_list as websiteDefaultList } from '../../../../../src/assets/frontend_assets/assets';
-import { Search, Trash2, Tag, Utensils } from 'lucide-react';
+import { Search, Trash2, Tag, Utensils, Lock } from 'lucide-react';
 
-export default function List({ url }) {
+export default function List({ url, adminToken, setShowLogin }) {
   const [list, setList] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Formatted default food list in INR
   const formattedDefaultList = websiteDefaultList.map((item) => ({
     ...item,
     price: item.price < 50 ? item.price * 15 : item.price,
@@ -50,6 +49,12 @@ export default function List({ url }) {
   }, []);
 
   const removeFood = async (item) => {
+    if (!adminToken) {
+      toast.error("🔒 Access Denied: Please sign in as Admin to delete food items!");
+      if (setShowLogin) setShowLogin(true);
+      return;
+    }
+
     if (item.isDefault) {
       setList(prev => prev.filter(f => f.name !== item.name));
       toast.success(`${item.name} removed from admin view`);
@@ -81,13 +86,36 @@ export default function List({ url }) {
 
   return (
     <div className='admin-list-container'>
+      {!adminToken && (
+        <div style={{
+          background: '#fff1f2',
+          border: '1px solid #fecdd3',
+          padding: '12px 20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#e63946', fontWeight: 700, fontSize: '13px' }}>
+            <Lock size={16} /> Removing dishes is disabled in Read-Only mode. Log in as Admin to enable deletion.
+          </div>
+          <button 
+            type="button"
+            onClick={() => setShowLogin && setShowLogin(true)}
+            style={{ background: '#e63946', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+          >
+            SIGN IN
+          </button>
+        </div>
+      )}
+
       <div className="list-header-row">
         <div>
           <h2><Utensils size={24} color="#e63946" /> All Website Food Items ({filteredList.length})</h2>
           <p className="subtext">All items listed on the customer food delivery website</p>
         </div>
 
-        {/* Search Bar */}
         <div className="admin-search-box">
           <Search size={16} color="#64748b" />
           <input 
@@ -99,7 +127,6 @@ export default function List({ url }) {
         </div>
       </div>
 
-      {/* Category Pills */}
       <div className="category-pills-row">
         {categories.map(cat => (
           <button 
@@ -112,7 +139,6 @@ export default function List({ url }) {
         ))}
       </div>
 
-      {/* Food Items Table */}
       <div className="list-table">
         <div className="list-table-format title">
           <b>Image</b>
@@ -148,8 +174,13 @@ export default function List({ url }) {
                 </p>
                 <p><span className="category-tag"><Tag size={12} /> {item.category}</span></p>
                 <p className="price-rupee">₹{item.price}</p>
-                <p onClick={() => removeFood(item)} className='action-delete-btn' title="Remove item">
-                  <Trash2 size={18} color="#ef4444" />
+                <p 
+                  onClick={() => removeFood(item)} 
+                  className={`action-delete-btn ${!adminToken ? 'disabled' : ''}`} 
+                  title={adminToken ? "Remove item" : "Log in to delete"}
+                  style={{ cursor: adminToken ? 'pointer' : 'not-allowed', opacity: adminToken ? 1 : 0.4 }}
+                >
+                  <Trash2 size={18} color={adminToken ? "#ef4444" : "#94a3b8"} />
                 </p>
               </div>
             );
