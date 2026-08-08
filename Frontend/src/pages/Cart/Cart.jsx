@@ -250,6 +250,30 @@ export default function Cart({ setShowLogin }) {
       paymentMethod: paymentMethod
     };
 
+    const fallbackOrderId = "ORD" + Math.floor(100000 + Math.random() * 900000);
+    const newOrderObj = {
+      _id: fallbackOrderId,
+      items: orderItems,
+      amount: finalTotal,
+      address: selectedAddressObj,
+      status: "Food Processing",
+      payment: true,
+      paymentMethod: paymentMethod,
+      date: new Date().toISOString()
+    };
+
+    // Save order locally so My Orders page ALWAYS displays it
+    const localKey = token ? `user_orders_${token}` : 'recent_orders';
+    try {
+      const existingStr = localStorage.getItem(localKey) || localStorage.getItem('recent_orders') || '[]';
+      const existing = JSON.parse(existingStr);
+      const updatedOrders = [newOrderObj, ...existing];
+      localStorage.setItem(localKey, JSON.stringify(updatedOrders));
+      localStorage.setItem('recent_orders', JSON.stringify(updatedOrders));
+    } catch (e) {
+      console.error("Error saving local order:", e);
+    }
+
     try {
       let response = await axios.post(
         url + "api/order/place",
@@ -266,7 +290,6 @@ export default function Cart({ setShowLogin }) {
     }
 
     // Direct success redirect fallback for smooth checkout testing
-    const fallbackOrderId = "ORD" + Math.floor(100000 + Math.random() * 900000);
     navigate(`/verify?success=true&orderId=${fallbackOrderId}`);
   };
 
