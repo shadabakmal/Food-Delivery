@@ -21,8 +21,7 @@ export default function List({ url, adminToken, setShowLogin }) {
   const fetchList = async () => {
     try {
       const response = await axios.get(`${cleanUrl}/api/food/list`);
-      let combined = [...formattedDefaultList];
-
+      
       if (response.data && response.data.success && Array.isArray(response.data.data)) {
         const apiItems = response.data.data.map(item => ({
           ...item,
@@ -30,16 +29,18 @@ export default function List({ url, adminToken, setShowLogin }) {
           isDefault: false
         }));
 
-        apiItems.forEach(apiItem => {
-          const index = combined.findIndex(def => def.name.toLowerCase() === apiItem.name.toLowerCase());
-          if (index !== -1) {
-            combined[index] = apiItem;
-          } else {
-            combined.unshift(apiItem);
+        // Merge API custom items with default website menu items
+        const combined = [...apiItems];
+        formattedDefaultList.forEach(defItem => {
+          if (!combined.some(apiItem => apiItem.name.toLowerCase() === defItem.name.toLowerCase())) {
+            combined.push(defItem);
           }
         });
+
+        setList(combined);
+      } else {
+        setList(formattedDefaultList);
       }
-      setList(combined);
     } catch (err) {
       console.warn("Could not fetch API list, displaying default website menu items:", err.message);
       setList(formattedDefaultList);
