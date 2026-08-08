@@ -6,6 +6,46 @@ import axios from 'axios';
 import { User, MapPin, Wallet, CheckCircle2, HelpCircle, Plus, Minus, Tag, Utensils, X, LogOut, Package, CreditCard, Banknote } from 'lucide-react';
 import { assets } from '../../assets/frontend_assets/assets';
 
+// Valid Structured Location Database (Prevents random/fake string inputs)
+const LOCATION_DATA = {
+  "India": {
+    "Delhi NCR": ["New Delhi", "Connaught Place", "Noida", "Greater Noida", "Gurugram", "Ghaziabad", "Faridabad"],
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Aurangabad", "Navi Mumbai"],
+    "Karnataka": ["Bengaluru", "Mysuru", "Hubballi", "Mangaluru", "Belagavi"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem"],
+    "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Khammam"],
+    "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri"],
+    "Jharkhand": ["Dhanbad", "Ranchi", "Jamshedpur", "Bokaro Steel City", "Hazaribagh", "Deoghar"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi", "Agra", "Prayagraj", "Meerut"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar"],
+    "Rajasthan": ["Jaipur", "Udaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer"],
+    "Punjab": ["Chandigarh", "Ludhiana", "Amritsar", "Jalandhar", "Patiala"],
+    "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Karnal"],
+    "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur"],
+    "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur"],
+    "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur"],
+    "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela"],
+    "Assam": ["Guwahati", "Silchar", "Dibrugarh"],
+    "Goa": ["Panaji", "Margao", "Vasco da Gama"]
+  },
+  "United States": {
+    "California": ["Los Angeles", "San Francisco", "San Diego", "San Jose"],
+    "New York": ["New York City", "Buffalo", "Albany", "Rochester"],
+    "Texas": ["Houston", "Dallas", "Austin", "San Antonio"],
+    "Florida": ["Miami", "Orlando", "Tampa", "Jacksonville"]
+  },
+  "United Kingdom": {
+    "England": ["London", "Manchester", "Birmingham", "Liverpool", "Leeds"],
+    "Scotland": ["Edinburgh", "Glasgow", "Aberdeen"],
+    "Wales": ["Cardiff", "Swansea"]
+  },
+  "United Arab Emirates": {
+    "Dubai": ["Dubai City", "Deira", "Jumeirah", "Downtown Dubai"],
+    "Abu Dhabi": ["Abu Dhabi City", "Al Ain"],
+    "Sharjah": ["Sharjah City"]
+  }
+};
+
 export default function Cart({ setShowLogin }) {
   const { cartItems, food_list, addToCart, removeFromCart, getTotalCartAmount, token, setToken, userName, setUserName, url } = useContext(StoreContext);
   const navigate = useNavigate();
@@ -28,7 +68,7 @@ export default function Cart({ setShowLogin }) {
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponError, setCouponError] = useState('');
 
-  // New Address Form State
+  // Structured Address Form State with Validation
   const [newAddr, setNewAddr] = useState({
     type: "Home",
     firstName: "",
@@ -36,8 +76,9 @@ export default function Cart({ setShowLogin }) {
     phone: "",
     street: "",
     area: "",
-    city: "",
+    country: "India",
     state: "",
+    city: "",
     pincode: ""
   });
 
@@ -90,7 +131,7 @@ export default function Cart({ setShowLogin }) {
     fetchAddresses();
   }, [token]);
 
-  // Handle saving new address to database & local state
+  // Handle saving new address with strict location & input validation
   const handleSaveAddress = async (e) => {
     e.preventDefault();
     if (!token) {
@@ -98,13 +139,43 @@ export default function Cart({ setShowLogin }) {
       return;
     }
 
-    if (!newAddr.firstName || !newAddr.phone || !newAddr.street || !newAddr.city) {
-      alert("Please fill in all required address fields.");
+    // Validation checks
+    if (!newAddr.firstName.trim() || newAddr.firstName.trim().length < 2) {
+      alert("Please enter a valid First Name (at least 2 characters).");
+      return;
+    }
+
+    const cleanPhone = newAddr.phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      alert("Please enter a valid 10-digit mobile phone number.");
+      return;
+    }
+
+    if (!newAddr.street.trim() || newAddr.street.trim().length < 4) {
+      alert("Please enter a valid Street / Building address.");
+      return;
+    }
+
+    if (!newAddr.state) {
+      alert("Please select a valid State from the dropdown.");
+      return;
+    }
+
+    if (!newAddr.city) {
+      alert("Please select a valid City from the dropdown.");
+      return;
+    }
+
+    const cleanPincode = newAddr.pincode.replace(/\D/g, '');
+    if (cleanPincode.length < 5) {
+      alert("Please enter a valid Pincode.");
       return;
     }
 
     const createdAddress = {
       ...newAddr,
+      phone: cleanPhone,
+      pincode: cleanPincode,
       id: Date.now().toString()
     };
 
@@ -133,8 +204,9 @@ export default function Cart({ setShowLogin }) {
       phone: "",
       street: "",
       area: "",
-      city: "",
+      country: "India",
       state: "",
+      city: "",
       pincode: ""
     });
   };
@@ -212,7 +284,17 @@ export default function Cart({ setShowLogin }) {
     return assets.food_1;
   };
 
-  // Swiggy Empty Cart View
+  // Available states for selected country
+  const availableStates = newAddr.country && LOCATION_DATA[newAddr.country] 
+    ? Object.keys(LOCATION_DATA[newAddr.country]) 
+    : [];
+
+  // Available cities for selected state
+  const availableCities = newAddr.country && newAddr.state && LOCATION_DATA[newAddr.country][newAddr.state]
+    ? LOCATION_DATA[newAddr.country][newAddr.state]
+    : [];
+
+  // Empty Cart View
   if (!cartHasItems) {
     return (
       <div className="swiggy-checkout-page">
@@ -382,7 +464,7 @@ export default function Cart({ setShowLogin }) {
                         <strong>{addr.type || 'Address'}</strong>
                       </div>
                       <p className="addr-text">
-                        {addr.street}, {addr.area ? addr.area + ',' : ''} {addr.city}, {addr.state} ({addr.phone})
+                        {addr.street}, {addr.area ? addr.area + ',' : ''} {addr.city}, {addr.state}, {addr.country} ({addr.phone})
                       </p>
                       <span className="eta-tag">25 MINS</span>
                       <button 
@@ -394,7 +476,7 @@ export default function Cart({ setShowLogin }) {
                     </div>
                   ))}
 
-                  {/* Add New Address Trigger Card (Screenshot 2) */}
+                  {/* Add New Address Trigger Card */}
                   <div className="address-card add-new-card-swiggy" onClick={() => setShowAddressModal(true)}>
                     <div className="add-new-header-row">
                       <div className="location-plus-icon-badge">
@@ -596,7 +678,7 @@ export default function Cart({ setShowLogin }) {
         </div>
       </div>
 
-      {/* Add New Address Form Modal */}
+      {/* Add New Address Form Modal with Structured Dropdowns */}
       {showAddressModal && (
         <div className="address-modal-overlay">
           <div className="address-modal-card">
@@ -675,26 +757,49 @@ export default function Cart({ setShowLogin }) {
                 />
               </div>
 
+              {/* Country Select Dropdown */}
               <div className="form-group">
-                <label>City *</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="City"
-                  value={newAddr.city}
-                  onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })}
-                />
+                <label>Country *</label>
+                <select 
+                  value={newAddr.country} 
+                  onChange={(e) => setNewAddr({ ...newAddr, country: e.target.value, state: "", city: "" })}
+                  required
+                >
+                  {Object.keys(LOCATION_DATA).map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
               </div>
 
+              {/* State Cascading Dropdown */}
               <div className="form-group">
                 <label>State *</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="State"
-                  value={newAddr.state}
-                  onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })}
-                />
+                <select 
+                  value={newAddr.state} 
+                  onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value, city: "" })}
+                  required
+                >
+                  <option value="">-- Select State --</option>
+                  {availableStates.map(state => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* City Cascading Dropdown */}
+              <div className="form-group">
+                <label>City *</label>
+                <select 
+                  value={newAddr.city} 
+                  onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })}
+                  required
+                  disabled={!newAddr.state}
+                >
+                  <option value="">{newAddr.state ? "-- Select City --" : "-- Select State First --"}</option>
+                  {availableCities.map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group">

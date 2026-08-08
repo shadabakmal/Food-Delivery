@@ -753,15 +753,17 @@
   color: #475569;
 }
 
-.form-group input {
+.form-group input, .form-group select {
   padding: 10px 12px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 13px;
   outline: none;
+  background: white;
+  color: #1e293b;
 }
 
-.form-group input:focus {
+.form-group input:focus, .form-group select:focus {
   border-color: #60b246;
 }
 
