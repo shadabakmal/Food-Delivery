@@ -274,22 +274,28 @@ export default function Cart({ setShowLogin }) {
       console.error("Error saving local order:", e);
     }
 
-    try {
-      let response = await axios.post(
-        url + "api/order/place",
-        orderData,
-        { headers: { Authorization: `Bearer ${token}` }, timeout: 4000 }
-      );
+    if (paymentMethod === 'stripe') {
+      try {
+        let response = await axios.post(
+          url + "api/order/place",
+          orderData,
+          { headers: { Authorization: `Bearer ${token}` }, timeout: 4000 }
+        );
 
-      if (response && response.data && response.data.success && response.data.session_url) {
-        window.location.replace(response.data.session_url);
-        return;
+        if (response && response.data && response.data.success && response.data.session_url && response.data.session_url.includes('checkout.stripe.com')) {
+          window.location.replace(response.data.session_url);
+          return;
+        }
+      } catch (err) {
+        console.warn("Backend Stripe API timeout, using Stripe gateway interface:", err.message);
       }
-    } catch (err) {
-      console.warn("Backend order placement offline, activating fallback order confirmation:", err.message);
+
+      // Navigate to interactive Stripe Payment Gateway page (Matched to Screenshot 2)
+      navigate(`/stripe-checkout?orderId=${fallbackOrderId}&amount=${finalTotal}`);
+      return;
     }
 
-    // Direct success redirect fallback for smooth checkout testing
+    // Cash on Delivery direct verification
     navigate(`/verify?success=true&orderId=${fallbackOrderId}`);
   };
 

@@ -10,11 +10,12 @@ import Verify from './pages/verify/Verify';
 import MyOrders from './pages/MyOrders/MyOrders';
 import TrackOrder from './pages/TrackOrder/TrackOrder';
 import ItemAddedBar from './components/ItemAddedBar/ItemAddedBar';
+import StripeCheckout from './pages/StripeCheckout/StripeCheckout';
 
 export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const location = useLocation();
-  const isCheckoutPage = location.pathname === '/cart' || location.pathname === '/order';
+  const isCheckoutPage = location.pathname === '/cart' || location.pathname === '/order' || location.pathname === '/stripe-checkout';
 
   return (
     <>
@@ -31,6 +32,7 @@ export default function App() {
           <Route path='/verify' element={<Verify />} />
           <Route path='/myorders' element={<MyOrders />} />
           <Route path='/track/:orderId' element={<TrackOrder />} />
+          <Route path='/stripe-checkout' element={<StripeCheckout />} />
         </Routes>
       </div>
 
