@@ -1,16 +1,24 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import './ItemAddedBar.css';
 import { StoreContext } from '../../Context/StoreContext';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, ChevronRight } from 'lucide-react';
+import { ShoppingBag, ChevronRight, X } from 'lucide-react';
 
 export default function ItemAddedBar() {
   const { getTotalCartCount, getTotalCartAmount } = useContext(StoreContext);
   const navigate = useNavigate();
   const count = getTotalCartCount();
   const amount = getTotalCartAmount();
+  const [isDismissed, setIsDismissed] = useState(false);
 
-  if (count === 0) return null;
+  // Reset dismissed state when new items are added
+  useEffect(() => {
+    if (count > 0) {
+      setIsDismissed(false);
+    }
+  }, [count]);
+
+  if (count === 0 || isDismissed) return null;
 
   return (
     <div className="item-added-bar-container">
@@ -26,10 +34,24 @@ export default function ItemAddedBar() {
           </div>
         </div>
 
-        <button className="view-cart-action-btn" onClick={(e) => { e.stopPropagation(); navigate('/cart'); }}>
-          <span>VIEW CART</span>
-          <ChevronRight size={18} />
-        </button>
+        <div className="bar-right-actions">
+          <button 
+            className="view-cart-action-btn" 
+            onClick={(e) => { e.stopPropagation(); navigate('/cart'); }}
+          >
+            <span>VIEW CART</span>
+            <ChevronRight size={16} />
+          </button>
+          
+          <button 
+            className="close-bar-cross-btn" 
+            onClick={(e) => { e.stopPropagation(); setIsDismissed(true); }}
+            title="Close cart notification"
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
     </div>
   );
