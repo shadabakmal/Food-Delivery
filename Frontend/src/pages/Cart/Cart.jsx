@@ -282,15 +282,20 @@ export default function Cart({ setShowLogin }) {
           { headers: { Authorization: `Bearer ${token}` }, timeout: 4000 }
         );
 
-        if (response && response.data && response.data.success && response.data.session_url && response.data.session_url.includes('checkout.stripe.com')) {
-          window.location.replace(response.data.session_url);
-          return;
+        if (response && response.data && response.data.success && response.data.session_url) {
+          if (response.data.session_url.startsWith('http') && response.data.session_url.includes('stripe')) {
+            window.location.replace(response.data.session_url);
+            return;
+          } else {
+            navigate(response.data.session_url);
+            return;
+          }
         }
       } catch (err) {
-        console.warn("Backend Stripe API timeout, using Stripe gateway interface:", err.message);
+        console.warn("Backend Stripe API timeout, opening Stripe gateway interface:", err.message);
       }
 
-      // Navigate to interactive Stripe Payment Gateway page (Matched to Screenshot 2)
+      // Navigate to interactive Stripe Payment Gateway page (Matched to Screenshot 2 & GreatStack Tutorial)
       navigate(`/stripe-checkout?orderId=${fallbackOrderId}&amount=${finalTotal}`);
       return;
     }
