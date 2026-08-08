@@ -815,3 +815,45 @@
   font-weight: 800;
   cursor: pointer;
 }
+
+/* Mobile Responsiveness for Cart Checkout Page */
+@media (max-width: 900px) {
+  .swiggy-checkout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  .header-inner {
+    padding: 0 12px !important;
+  }
+
+  .secure-checkout-steps {
+    display: none !important;
+  }
+
+  .swiggy-checkout-page {
+    padding-bottom: 40px !important;
+  }
+
+  .cart-item-row {
+    grid-template-columns: 1fr auto auto !important;
+    gap: 8px !important;
+    font-size: 13px !important;
+  }
+
+  .saved-addresses-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-step-card {
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+
+  .modal-card {
+    padding: 16px !important;
+    width: 95% !important;
+  }
+}

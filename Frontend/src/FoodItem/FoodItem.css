@@ -182,3 +182,47 @@
   padding: 4px 10px;
   border-radius: 12px;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .food-item-img-wrap {
+    height: 140px;
+  }
+
+  .food-item-info-wrap {
+    padding: 12px;
+  }
+
+  .food-item-title-row h3 {
+    font-size: 14px;
+  }
+
+  .food-item-desc {
+    font-size: 11px;
+    margin-bottom: 8px;
+    -webkit-line-clamp: 2;
+  }
+
+  .price-tag {
+    font-size: 16px;
+  }
+
+  .add-btn-round {
+    width: 32px;
+    height: 32px;
+    bottom: 8px;
+    right: 8px;
+  }
+
+  .food-counter-pill {
+    bottom: 8px;
+    right: 8px;
+    padding: 2px;
+    gap: 4px;
+  }
+
+  .count-btn {
+    width: 24px;
+    height: 24px;
+  }
+}
