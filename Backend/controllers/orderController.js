@@ -150,6 +150,49 @@ const updateStatus = async (req, res) => {
   }
 };
 
+const getOrderById = async (req, res) => {
+  try {
+    const order = await orderModel.findById(req.params.id);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    res.json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const assignDeliveryBoy = async (req, res) => {
+  try {
+    const { orderId, deliveryBoyId } = req.body;
+    const boy = DELIVERY_BOYS.find(b => b.id === deliveryBoyId) || DELIVERY_BOYS[0];
+    const order = await orderModel.findByIdAndUpdate(orderId, {
+      deliveryBoyId: boy.id,
+      deliveryBoyName: boy.name,
+      deliveryBoyPhone: boy.phone,
+      deliveryBoyVehicle: boy.vehicle,
+      deliveryBoyAvatar: boy.avatar
+    }, { new: true });
+    res.json({ success: true, message: "Delivery boy assigned", order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateDeliveryLocation = async (req, res) => {
+  try {
+    const { orderId, lat, lng } = req.body;
+    const order = await orderModel.findByIdAndUpdate(orderId, {
+      deliveryBoyLocation: { lat, lng }
+    }, { new: true });
+    res.json({ success: true, order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getDeliveryBoys = async (req, res) => {
+  res.json({ success: true, data: DELIVERY_BOYS });
+};
+
 const getOrderTracking = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -194,4 +237,15 @@ const getOrderTracking = async (req, res) => {
   }
 };
 
-export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getOrderTracking };
+export { 
+  placeOrder, 
+  verifyOrder, 
+  userOrders, 
+  listOrders, 
+  updateStatus, 
+  getOrderById, 
+  assignDeliveryBoy, 
+  updateDeliveryLocation, 
+  getDeliveryBoys, 
+  getOrderTracking 
+};
