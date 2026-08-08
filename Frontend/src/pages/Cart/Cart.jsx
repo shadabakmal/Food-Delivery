@@ -283,17 +283,25 @@ export default function Cart({ setShowLogin }) {
         );
 
         if (response && response.data && response.data.success && response.data.session_url) {
-          // DIRECT REDIRECT TO OFFICIAL STRIPE CHECKOUT (checkout.stripe.com)
+          // MANDATORY DIRECT REDIRECT TO OFFICIAL STRIPE DOMAIN (checkout.stripe.com)
           window.location.href = response.data.session_url;
           return;
         }
-      } catch (err) {
-        console.warn("Backend Stripe API error, opening Stripe checkout interface:", err.message);
-      }
 
-      // Fallback to Stripe Checkout Gateway page
-      navigate(`/stripe-checkout?orderId=${fallbackOrderId}&amount=${finalTotal}`);
-      return;
+        if (response && response.data && !response.data.success && response.data.need_key) {
+          alert("⚠️ STRIPE SECRET KEY REQUIRED:\n\nPlease add your STRIPE_SECRET_KEY (sk_test_...) to your Vercel Backend Environment Variables (food-delivery-backend-psi-lac) so Stripe API can generate official session URLs (checkout.stripe.com)!");
+          return;
+        }
+
+        if (response && response.data && !response.data.success) {
+          alert("Stripe Error: " + (response.data.message || "Failed to create Stripe Checkout session"));
+          return;
+        }
+      } catch (err) {
+        console.error("Backend Stripe API error:", err);
+        alert("Failed to connect to payment server: " + err.message);
+        return;
+      }
     }
 
     // Cash on Delivery direct verification

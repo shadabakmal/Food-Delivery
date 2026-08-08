@@ -62,44 +62,57 @@ const placeOrder = async (req, res) => {
     }
 
     // Handle Stripe Online Payment
-    if (paymentMethod === "stripe" && stripe) {
+    const activeStripeKey = process.env.STRIPE_SECRET_KEY;
+    let stripeInstance = null;
+    if (activeStripeKey && activeStripeKey.trim().length > 10) {
       try {
-        const line_items = items.map((item) => ({
-          price_data: {
-            currency: "inr",
-            product_data: { name: item.name },
-            unit_amount: Math.round(item.price * 100),
-          },
-          quantity: item.quantity,
-        }));
-
-        line_items.push({
-          price_data: {
-            currency: "inr",
-            product_data: { name: "Delivery & Service charges" },
-            unit_amount: 4000,
-          },
-          quantity: 1,
-        });
-
-        const session = await stripe.checkout.sessions.create({
-          line_items,
-          mode: "payment",
-          success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-          cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
-        });
-
-        return res.json({ success: true, session_url: session.url });
-      } catch (stripeErr) {
-        console.warn("Stripe checkout session error:", stripeErr.message);
+        stripeInstance = new Stripe(activeStripeKey.trim());
+      } catch (e) {
+        console.warn("Stripe init error:", e.message);
       }
     }
 
-    // Fallback confirmation redirect
-    res.json({ 
-      success: true, 
-      session_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}` 
-    });
+    if (paymentMethod === "stripe") {
+      if (stripeInstance) {
+        try {
+          const line_items = items.map((item) => ({
+            price_data: {
+              currency: "inr",
+              product_data: { name: item.name },
+              unit_amount: Math.round(item.price * 100),
+            },
+            quantity: item.quantity,
+          }));
+
+          line_items.push({
+            price_data: {
+              currency: "inr",
+              product_data: { name: "Delivery & Service charges" },
+              unit_amount: 4000,
+            },
+            quantity: 1,
+          });
+
+          const session = await stripeInstance.checkout.sessions.create({
+            line_items,
+            mode: "payment",
+            success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
+            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
+          });
+
+          return res.json({ success: true, session_url: session.url });
+        } catch (stripeErr) {
+          console.error("Stripe session creation error:", stripeErr.message);
+          return res.json({ success: false, message: "Stripe error: " + stripeErr.message });
+        }
+      } else {
+        return res.json({
+          success: false,
+          need_key: true,
+          message: "STRIPE_SECRET_KEY environment variable is not configured in Vercel Backend settings."
+        });
+      }
+    }
   } catch (error) {
     console.error("Order error:", error.message);
     res.status(500).json({ success: false, message: "Order failed" });
