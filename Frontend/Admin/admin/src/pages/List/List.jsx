@@ -10,6 +10,8 @@ export default function List({ url, adminToken, setShowLogin }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
+  const cleanUrl = (url || "https://food-delivery-backend-psi-lac.vercel.app").replace(/\/+$/, '');
+
   const formattedDefaultList = websiteDefaultList.map((item) => ({
     ...item,
     price: item.price < 50 ? item.price * 15 : item.price,
@@ -18,7 +20,7 @@ export default function List({ url, adminToken, setShowLogin }) {
 
   const fetchList = async () => {
     try {
-      const response = await axios.get(`${url}/api/food/list`);
+      const response = await axios.get(`${cleanUrl}/api/food/list`);
       let combined = [...formattedDefaultList];
 
       if (response.data && response.data.success && Array.isArray(response.data.data)) {
@@ -39,7 +41,7 @@ export default function List({ url, adminToken, setShowLogin }) {
       }
       setList(combined);
     } catch (err) {
-      console.warn("Could not fetch API list, displaying complete website menu items:", err.message);
+      console.warn("Could not fetch API list, displaying default website menu items:", err.message);
       setList(formattedDefaultList);
     }
   };
@@ -62,7 +64,7 @@ export default function List({ url, adminToken, setShowLogin }) {
     }
 
     try {
-      const response = await axios.post(`${url}/api/food/remove`, { id: item._id });
+      const response = await axios.post(`${cleanUrl}/api/food/remove`, { id: item._id });
       if (response.data.success) {
         toast.success(response.data.message);
         await fetchList();
@@ -157,7 +159,7 @@ export default function List({ url, adminToken, setShowLogin }) {
             const imageSrc = typeof item.image === 'string' && (item.image.startsWith('http') || item.image.startsWith('data:'))
               ? item.image
               : typeof item.image === 'string' && item.image.length > 5 && !item.isDefault
-                ? `${url}/images/` + item.image
+                ? `${cleanUrl}/images/` + item.image
                 : item.image;
 
             return (
