@@ -11,56 +11,35 @@ export default function MyOrders() {
   const navigate = useNavigate();
 
   const syncCancelledStorage = (targetId) => {
-    const keys = [
-      token ? `user_orders_${token}` : null,
-      'recent_orders'
-    ].filter(Boolean);
-
-    keys.forEach(k => {
-      try {
-        const stored = localStorage.getItem(k);
-        if (stored) {
-          const parsed = JSON.parse(stored).map(o => o._id === targetId ? { ...o, status: "Cancelled" } : o);
-          localStorage.setItem(k, JSON.stringify(parsed));
-        }
-      } catch (e) {}
-    });
+    const userKey = token ? `user_orders_${token}` : 'recent_orders';
+    try {
+      const stored = localStorage.getItem(userKey);
+      if (stored) {
+        const parsed = JSON.parse(stored).map(o => String(o._id) === String(targetId) ? { ...o, status: "Cancelled" } : o);
+        localStorage.setItem(userKey, JSON.stringify(parsed));
+      }
+    } catch (e) {}
   };
 
   const fetchOrders = async () => {
-    // 1. Authenticated User flow
+    // 1. Authenticated User flow (100% Isolated to this specific logged-in user account token)
     if (token) {
       const userKey = `user_orders_${token}`;
       let localUserOrders = [];
-      let recentOrders = [];
 
       try {
         const storedUser = localStorage.getItem(userKey);
-        if (storedUser) localUserOrders = JSON.parse(storedUser);
-      } catch (e) {}
-
-      try {
-        const storedRecent = localStorage.getItem('recent_orders');
-        if (storedRecent) recentOrders = JSON.parse(storedRecent);
-      } catch (e) {}
-
-      // Combine local user orders + recent orders so no placed order ever gets lost
-      const mergedLocal = [...localUserOrders];
-      recentOrders.forEach(rec => {
-        if (!mergedLocal.some(o => o._id === rec._id)) {
-          mergedLocal.push(rec);
+        if (storedUser) {
+          localUserOrders = JSON.parse(storedUser);
         }
-      });
-
-      // Immediately render local orders to prevent flashing / vanishing on refresh
-      if (mergedLocal.length > 0) {
-        setData(mergedLocal);
-        try {
-          localStorage.setItem(userKey, JSON.stringify(mergedLocal));
-        } catch (e) {}
+      } catch (e) {
+        console.warn("User local orders parse error:", e);
       }
 
-      // Query Backend API for server-synced orders
+      // Immediately render this account's local orders
+      setData(localUserOrders);
+
+      // Query Backend API for server-synced orders belonging to this account token
       try {
         const response = await axios.post(
           url + "api/order/userorders",
@@ -72,9 +51,9 @@ export default function MyOrders() {
           const apiOrders = response.data.data;
           const finalCombined = [...apiOrders];
           
-          // Unconditionally preserve local orders & sync status changes
-          mergedLocal.forEach(loc => {
-            const matchIdx = finalCombined.findIndex(o => o._id === loc._id);
+          // Merge local status updates for this specific user account
+          localUserOrders.forEach(loc => {
+            const matchIdx = finalCombined.findIndex(o => String(o._id) === String(loc._id));
             if (matchIdx !== -1) {
               if (loc.status === 'Cancelled') {
                 finalCombined[matchIdx].status = 'Cancelled';
@@ -92,9 +71,7 @@ export default function MyOrders() {
         console.warn("Backend orders API check:", error.message);
       }
 
-      if (mergedLocal.length > 0) {
-        setData(mergedLocal);
-      }
+      setData(localUserOrders);
       return;
     }
 
@@ -115,7 +92,7 @@ export default function MyOrders() {
 
     // Instantly sync local state & storage for this user
     syncCancelledStorage(orderId);
-    setData(prev => prev.map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o));
+    setData(prev => prev.map(o => String(o._id) === String(orderId) ? { ...o, status: "Cancelled" } : o));
 
     try {
       const response = await axios.post(url + "api/order/cancel", { 

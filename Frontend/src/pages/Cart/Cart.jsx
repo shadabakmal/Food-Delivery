@@ -251,19 +251,33 @@ export default function Cart({ setShowLogin }) {
     };
 
     const saveLocalOrder = (orderObj) => {
-      const localKey = token ? `user_orders_${token}` : 'recent_orders';
-      try {
-        const existingStr = localStorage.getItem(localKey) || '[]';
-        let existing = JSON.parse(existingStr);
-        if (!Array.isArray(existing)) existing = [];
-        
-        const filtered = existing.filter(o => String(o._id) !== String(orderObj._id));
-        const updatedOrders = [orderObj, ...filtered];
-        
-        localStorage.setItem(localKey, JSON.stringify(updatedOrders));
-        localStorage.setItem('recent_orders', JSON.stringify(updatedOrders));
-      } catch (e) {
-        console.error("Error saving local order:", e);
+      if (token) {
+        const userKey = `user_orders_${token}`;
+        try {
+          const existingStr = localStorage.getItem(userKey) || '[]';
+          let existing = JSON.parse(existingStr);
+          if (!Array.isArray(existing)) existing = [];
+          
+          const filtered = existing.filter(o => String(o._id) !== String(orderObj._id));
+          const updatedOrders = [orderObj, ...filtered];
+          
+          localStorage.setItem(userKey, JSON.stringify(updatedOrders));
+        } catch (e) {
+          console.error("Error saving user local order:", e);
+        }
+      } else {
+        try {
+          const existingStr = localStorage.getItem('recent_orders') || '[]';
+          let existing = JSON.parse(existingStr);
+          if (!Array.isArray(existing)) existing = [];
+          
+          const filtered = existing.filter(o => String(o._id) !== String(orderObj._id));
+          const updatedOrders = [orderObj, ...filtered];
+          
+          localStorage.setItem('recent_orders', JSON.stringify(updatedOrders));
+        } catch (e) {
+          console.error("Error saving guest local order:", e);
+        }
       }
     };
 
