@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import './Order.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Bike, CheckCircle, Clock, MapPin, Package, UserCheck, Play, Lock, XCircle, ShieldCheck } from 'lucide-react';
+import { Bike, CheckCircle, Clock, MapPin, Package, UserCheck, Play, Lock, XCircle, ShieldCheck, RefreshCw } from 'lucide-react';
 
 export default function Order({ url, adminToken, setShowLogin }) {
   const [orders, setOrders] = useState([]);
   const [deliveryBoys, setDeliveryBoys] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const checkAuth = (actionName) => {
     if (!adminToken) {
@@ -18,6 +19,7 @@ export default function Order({ url, adminToken, setShowLogin }) {
   };
 
   const fetchOrders = async () => {
+    setRefreshing(true);
     let dbOrders = [];
     try {
       const response = await axios.get(url + "api/order/list");
@@ -41,7 +43,11 @@ export default function Order({ url, adminToken, setShowLogin }) {
       }
     });
 
+    // Sort all orders by date descending (Newest orders ALWAYS on top!)
+    combined.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
     setOrders(combined);
+    setRefreshing(false);
   };
 
   const fetchDeliveryBoys = async () => {
@@ -173,6 +179,8 @@ export default function Order({ url, adminToken, setShowLogin }) {
   useEffect(() => {
     fetchOrders();
     fetchDeliveryBoys();
+    const interval = setInterval(fetchOrders, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -203,7 +211,27 @@ export default function Order({ url, adminToken, setShowLogin }) {
 
       <div className="admin-order-header">
         <h2><Package size={24} /> Order Management & Delivery Assignment</h2>
-        <span className="order-count">{orders.length} Active Orders</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button 
+            onClick={fetchOrders}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#f1f5f9',
+              border: '1px solid #cbd5e1',
+              color: '#334155',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              fontWeight: 700,
+              fontSize: '12px',
+              cursor: 'pointer'
+            }}
+          >
+            <RefreshCw size={14} className={refreshing ? 'spin' : ''} /> Refresh Orders
+          </button>
+          <span className="order-count">{orders.length} Active Orders</span>
+        </div>
       </div>
 
       <div className="admin-order-list">

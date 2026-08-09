@@ -250,29 +250,22 @@ export default function Cart({ setShowLogin }) {
       paymentMethod: paymentMethod
     };
 
-    const fallbackOrderId = "ORD" + Math.floor(100000 + Math.random() * 900000);
-    const newOrderObj = {
-      _id: fallbackOrderId,
-      items: orderItems,
-      amount: finalTotal,
-      address: selectedAddressObj,
-      status: "Food Processing",
-      payment: true,
-      paymentMethod: paymentMethod,
-      date: new Date().toISOString()
+    const saveLocalOrder = (orderObj) => {
+      const localKey = token ? `user_orders_${token}` : 'recent_orders';
+      try {
+        const existingStr = localStorage.getItem(localKey) || '[]';
+        let existing = JSON.parse(existingStr);
+        if (!Array.isArray(existing)) existing = [];
+        
+        const filtered = existing.filter(o => String(o._id) !== String(orderObj._id));
+        const updatedOrders = [orderObj, ...filtered];
+        
+        localStorage.setItem(localKey, JSON.stringify(updatedOrders));
+        localStorage.setItem('recent_orders', JSON.stringify(updatedOrders));
+      } catch (e) {
+        console.error("Error saving local order:", e);
+      }
     };
-
-    // Save order locally so My Orders page ALWAYS displays it
-    const localKey = token ? `user_orders_${token}` : 'recent_orders';
-    try {
-      const existingStr = localStorage.getItem(localKey) || localStorage.getItem('recent_orders') || '[]';
-      const existing = JSON.parse(existingStr);
-      const updatedOrders = [newOrderObj, ...existing];
-      localStorage.setItem(localKey, JSON.stringify(updatedOrders));
-      localStorage.setItem('recent_orders', JSON.stringify(updatedOrders));
-    } catch (e) {
-      console.error("Error saving local order:", e);
-    }
 
     if (paymentMethod === 'stripe') {
       try {
@@ -282,14 +275,27 @@ export default function Cart({ setShowLogin }) {
           { headers: { Authorization: `Bearer ${token}`, token: token }, timeout: 8000 }
         );
 
-        if (response && response.data && response.data.success && response.data.session_url) {
-          // EXCLUSIVE MANDATORY DIRECT REDIRECT TO OFFICIAL STRIPE DOMAIN (checkout.stripe.com)
-          window.location.href = response.data.session_url;
-          return;
+        if (response && response.data && response.data.success) {
+          const realOrderId = response.data.orderId || response.data.order?._id || ("ORD" + Date.now());
+          saveLocalOrder({
+            _id: realOrderId,
+            items: orderItems,
+            amount: finalTotal,
+            address: selectedAddressObj,
+            status: "Food Processing",
+            payment: true,
+            paymentMethod: 'stripe',
+            date: new Date().toISOString()
+          });
+
+          if (response.data.session_url) {
+            window.location.href = response.data.session_url;
+            return;
+          }
         }
 
         if (response && response.data && !response.data.success) {
-          alert("⚠️ STRIPE API ERROR:\n\n" + response.data.message + "\n\nPlease make sure your STRIPE_SECRET_KEY (sk_test_...) is added to Vercel Backend Settings -> Environment Variables (food-delivery-backend-psi-lac)!");
+          alert("⚠️ STRIPE API ERROR:\n\n" + response.data.message + "\n\nPlease make sure your STRIPE_SECRET_KEY (sk_test_...) is added to Vercel Backend Settings!");
           return;
         }
       } catch (err) {
@@ -298,7 +304,10 @@ export default function Cart({ setShowLogin }) {
         return;
       }
     } else {
-      // Cash on Delivery flow: POST orderData to backend API so it is saved in MongoDB & visible on Admin Panel!
+      // Cash on Delivery (COD) flow
+      const tempId = "ORD" + Math.floor(100000 + Math.random() * 900000);
+      let realOrderId = tempId;
+
       try {
         let response = await axios.post(
           url + "api/order/place",
@@ -307,16 +316,24 @@ export default function Cart({ setShowLogin }) {
         );
 
         if (response && response.data && response.data.success) {
-          const createdOrderId = response.data.orderId || response.data.order?._id || fallbackOrderId;
-          navigate(`/verify?success=true&orderId=${createdOrderId}`);
-          return;
+          realOrderId = response.data.orderId || response.data.order?._id || tempId;
         }
       } catch (err) {
-        console.warn("Backend COD API notice, using local fallback verification:", err.message);
+        console.warn("Backend COD API notice, using fallback ID:", err.message);
       }
 
-      // Cash on Delivery local verification fallback
-      navigate(`/verify?success=true&orderId=${fallbackOrderId}`);
+      saveLocalOrder({
+        _id: realOrderId,
+        items: orderItems,
+        amount: finalTotal,
+        address: selectedAddressObj,
+        status: "Food Processing",
+        payment: false,
+        paymentMethod: 'cod',
+        date: new Date().toISOString()
+      });
+
+      navigate(`/verify?success=true&orderId=${realOrderId}`);
     }
   };
 
