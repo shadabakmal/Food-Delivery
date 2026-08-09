@@ -11,36 +11,31 @@ export default function MyOrders() {
   const navigate = useNavigate();
 
   const syncCancelledStorage = (targetId) => {
-    const keys = [
-      token ? `user_orders_${token}` : null,
-      'recent_orders',
-      'user_orders_usr_guest'
-    ].filter(Boolean);
-
-    keys.forEach(k => {
-      try {
-        const stored = localStorage.getItem(k);
-        if (stored) {
-          const parsed = JSON.parse(stored).map(o => o._id === targetId ? { ...o, status: "Cancelled" } : o);
-          localStorage.setItem(k, JSON.stringify(parsed));
-        }
-      } catch (e) {}
-    });
+    const userKey = token ? `user_orders_${token}` : 'recent_orders';
+    try {
+      const stored = localStorage.getItem(userKey);
+      if (stored) {
+        const parsed = JSON.parse(stored).map(o => o._id === targetId ? { ...o, status: "Cancelled" } : o);
+        localStorage.setItem(userKey, JSON.stringify(parsed));
+      }
+    } catch (e) {}
   };
 
   const fetchOrders = async () => {
-    let localOrders = [];
-    const localKey = token ? `user_orders_${token}` : 'recent_orders';
-    try {
-      const stored = localStorage.getItem(localKey) || localStorage.getItem('recent_orders');
-      if (stored) {
-        localOrders = JSON.parse(stored);
-      }
-    } catch (e) {
-      console.warn("Local orders parse error:", e);
-    }
-
+    // 1. Authenticated User flow (Isolate user account orders completely)
     if (token) {
+      const userKey = `user_orders_${token}`;
+      let localUserOrders = [];
+
+      try {
+        const stored = localStorage.getItem(userKey);
+        if (stored) {
+          localUserOrders = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.warn("User local orders parse error:", e);
+      }
+
       try {
         const response = await axios.post(
           url + "api/order/userorders",
@@ -49,34 +44,50 @@ export default function MyOrders() {
         );
 
         if (response.data && response.data.success && Array.isArray(response.data.data)) {
-          const combined = [...response.data.data];
+          const apiOrders = response.data.data;
+          const combined = [...apiOrders];
           
-          localOrders.forEach(loc => {
+          // Merge any locally cached cancelled flags for this user
+          localUserOrders.forEach(loc => {
             const matchIdx = combined.findIndex(o => o._id === loc._id);
             if (matchIdx !== -1) {
               if (loc.status === 'Cancelled') {
                 combined[matchIdx].status = 'Cancelled';
               }
-            } else {
+            } else if (loc.userId === token || loc.isUserOrder) {
               combined.push(loc);
             }
           });
 
+          // Save isolated user orders to localStorage
+          localStorage.setItem(userKey, JSON.stringify(combined));
           setData(combined);
           return;
         }
       } catch (error) {
-        console.warn("Backend orders API offline, using local order history:", error.message);
+        console.warn("Backend orders API offline, using local user orders:", error.message);
       }
+
+      setData(localUserOrders);
+      return;
     }
 
-    setData(localOrders);
+    // 2. Unauthenticated Guest flow (Only read guest recent orders)
+    let guestOrders = [];
+    try {
+      const stored = localStorage.getItem('recent_orders');
+      if (stored) {
+        guestOrders = JSON.parse(stored);
+      }
+    } catch (e) {}
+
+    setData(guestOrders);
   };
 
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm("Are you sure you want to cancel this order?")) return;
 
-    // Instantly sync local state & storage
+    // Instantly sync local state & storage for this user
     syncCancelledStorage(orderId);
     setData(prev => prev.map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o));
 
