@@ -1,13 +1,16 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import './Navbar.css';
 import { assets } from '../../assets/frontend_assets/assets';
 import { Link, useNavigate } from 'react-router-dom';
 import { StoreContext } from '../../Context/StoreContext';
-import { Search, ShoppingBag, User, LogOut, Package, X } from 'lucide-react';
+import { Search, ShoppingBag, User, LogOut, Package, X, ChevronDown } from 'lucide-react';
 
 function Navbar({ setShowLogin }) {
   const [menu, setMenu] = useState("home");
   const [showSearchInput, setShowSearchInput] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const { token, setToken, userName, setUserName, getTotalCartAmount, getTotalCartCount, searchTerm, setSearchTerm } = useContext(StoreContext);
   const navigate = useNavigate();
 
@@ -16,6 +19,7 @@ function Navbar({ setShowLogin }) {
     localStorage.removeItem("userName");
     setToken("");
     if (setUserName) setUserName("");
+    setProfileOpen(false);
     navigate("/");
   };
 
@@ -26,6 +30,17 @@ function Navbar({ setShowLogin }) {
       exploreSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className='navbar-wrapper'>
@@ -95,17 +110,23 @@ function Navbar({ setShowLogin }) {
               Sign In
             </button>
           ) : (
-            <div className='navbar-profile-dropdown-wrapper'>
-              <div className="profile-icon-pill">
+            <div className='navbar-profile-dropdown-wrapper' ref={dropdownRef}>
+              <div 
+                className="profile-icon-pill" 
+                onClick={() => setProfileOpen(!profileOpen)}
+                title="Account Menu"
+              >
                 <User size={18} />
                 <span className="user-name-text">{userName || "Shadab Akmal"}</span>
+                <ChevronDown size={14} className={`profile-chevron ${profileOpen ? 'open' : ''}`} />
               </div>
-              <ul className="nav-profile-dropdown-menu">
-                <li onClick={() => navigate('/myorders')}>
+
+              <ul className={`nav-profile-dropdown-menu ${profileOpen ? 'open' : ''}`}>
+                <li onClick={() => { setProfileOpen(false); navigate('/myorders'); }}>
                   <Package size={16} /> <p>My Orders</p>
                 </li>
                 <hr />
-                <li onClick={logout}>
+                <li onClick={logout} className="logout-li">
                   <LogOut size={16} /> <p>Logout</p>
                 </li>
               </ul>
