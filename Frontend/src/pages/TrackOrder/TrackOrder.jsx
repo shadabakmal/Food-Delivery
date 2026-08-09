@@ -130,10 +130,16 @@ export default function TrackOrder() {
   const isCancelled = order.status === 'Cancelled';
   const isDelivered = order.status === 'Delivered';
 
+  // Extract Delivery Partner Info (fallback to Rahul Kumar if Delivered or Out for Delivery)
+  const assignedRiderName = order.deliveryBoy?.name || order.deliveryBoyName || (isDelivered || order.status === 'Out for Delivery' ? "Rahul Kumar" : null);
+  const assignedRiderPhone = order.deliveryBoy?.phone || order.deliveryBoyPhone || "+91 98765 43210";
+  const assignedRiderVehicle = order.deliveryBoy?.vehicle || order.deliveryBoyVehicle || "Honda Activa (UP16 AB 1234)";
+  const assignedRiderAvatar = order.deliveryBoy?.avatar || order.deliveryBoyAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
+
   const steps = [
     { title: "Order Placed", desc: "We received your order", active: true },
     { title: "Preparing Food", desc: "Kitchen is preparing your food", active: ["Food Processing", "Order Confirmed", "Out for Delivery", "Delivered"].includes(order.status) && !isCancelled },
-    { title: "Delivery Assigned", desc: order.deliveryBoy?.name ? `Assigned to ${order.deliveryBoy.name}` : "Finding nearby rider...", active: !!order.deliveryBoy?.name && !isCancelled },
+    { title: "Delivery Assigned", desc: assignedRiderName ? `Assigned to ${assignedRiderName}` : "Finding nearby rider...", active: !!assignedRiderName && !isCancelled },
     { title: "Out for Delivery", desc: "Rider is on the way to your door", active: ["Out for Delivery", "Delivered"].includes(order.status) && !isCancelled },
     { title: "Delivered", desc: "Order completed. Enjoy your meal!", active: isDelivered }
   ];
@@ -171,21 +177,21 @@ export default function TrackOrder() {
         )}
 
         {/* Rider Info Card */}
-        {!isCancelled && (order.deliveryBoy?.name ? (
+        {!isCancelled && (assignedRiderName ? (
           <div className="rider-card">
             <div className="rider-header">
               <img 
-                src={order.deliveryBoy.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"} 
-                alt={order.deliveryBoy.name} 
+                src={assignedRiderAvatar} 
+                alt={assignedRiderName} 
                 className="rider-avatar"
               />
               <div className="rider-details">
-                <h4>{order.deliveryBoy.name}</h4>
-                <p className="vehicle">{order.deliveryBoy.vehicle}</p>
+                <h4>{assignedRiderName}</h4>
+                <p className="vehicle">{assignedRiderVehicle}</p>
                 <div className="rider-rating">⭐ 4.9 • 1,200+ Deliveries Completed</div>
               </div>
-              <a href={`tel:${order.deliveryBoy.phone}`} className="call-btn">
-                <Phone size={16} /> Call Rider ({order.deliveryBoy.phone})
+              <a href={`tel:${assignedRiderPhone}`} className="call-btn">
+                <Phone size={16} /> Call Rider ({assignedRiderPhone})
               </a>
             </div>
             <div className="safety-badge">

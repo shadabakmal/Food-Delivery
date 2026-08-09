@@ -167,7 +167,31 @@ const getOrderById = async (req, res) => {
   try {
     const order = await orderModel.findById(req.params.id);
     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
-    res.json({ success: true, data: order });
+
+    const orderObj = order.toObject();
+
+    // Auto-assign default rider if order is Delivered or Out for Delivery without assigned rider
+    if (!orderObj.deliveryBoyName && (orderObj.status === "Delivered" || orderObj.status === "Out for Delivery")) {
+      const defaultBoy = DELIVERY_BOYS[0];
+      orderObj.deliveryBoyId = defaultBoy.id;
+      orderObj.deliveryBoyName = defaultBoy.name;
+      orderObj.deliveryBoyPhone = defaultBoy.phone;
+      orderObj.deliveryBoyVehicle = defaultBoy.vehicle;
+      orderObj.deliveryBoyAvatar = defaultBoy.avatar;
+    }
+
+    // Attach deliveryBoy nested object for frontend compatibility
+    if (orderObj.deliveryBoyName) {
+      orderObj.deliveryBoy = {
+        id: orderObj.deliveryBoyId || "DB001",
+        name: orderObj.deliveryBoyName,
+        phone: orderObj.deliveryBoyPhone || "+91 98765 43210",
+        vehicle: orderObj.deliveryBoyVehicle || "Honda Activa (UP16 AB 1234)",
+        avatar: orderObj.deliveryBoyAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+      };
+    }
+
+    res.json({ success: true, data: orderObj });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -188,8 +212,15 @@ const assignDeliveryBoy = async (req, res) => {
     order.deliveryBoyPhone = boy.phone;
     order.deliveryBoyVehicle = boy.vehicle;
     order.deliveryBoyAvatar = boy.avatar;
+    order.deliveryBoy = {
+      id: boy.id,
+      name: boy.name,
+      phone: boy.phone,
+      vehicle: boy.vehicle,
+      avatar: boy.avatar
+    };
     await order.save();
-    res.json({ success: true, message: "Delivery boy assigned", order });
+    res.json({ success: true, message: `Assigned ${boy.name} to order`, order });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
