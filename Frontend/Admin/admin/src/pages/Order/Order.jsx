@@ -252,10 +252,9 @@ export default function Order({ url, adminToken, setShowLogin }) {
                     <h4><Bike size={16} /> Delivery Partner</h4>
                     {order.deliveryBoy?.name ? (
                       <div className="assigned-boy-box">
-                        <img 
-                          src={order.deliveryBoy.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"} 
-                          alt={order.deliveryBoy.name}
-                        />
+                        <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', width: '38px', height: '38px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Bike size={20} color="#e63946" />
+                        </div>
                         <div>
                           <strong>{order.deliveryBoy.name}</strong>
                           <p>{order.deliveryBoy.vehicle}</p>

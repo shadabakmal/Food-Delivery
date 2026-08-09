@@ -134,7 +134,6 @@ export default function TrackOrder() {
   const assignedRiderName = order.deliveryBoy?.name || order.deliveryBoyName || (isDelivered || order.status === 'Out for Delivery' ? "Rahul Kumar" : null);
   const assignedRiderPhone = order.deliveryBoy?.phone || order.deliveryBoyPhone || "+91 98765 43210";
   const assignedRiderVehicle = order.deliveryBoy?.vehicle || order.deliveryBoyVehicle || "Honda Activa (UP16 AB 1234)";
-  const assignedRiderAvatar = order.deliveryBoy?.avatar || order.deliveryBoyAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
   const steps = [
     { title: "Order Placed", desc: "We received your order", active: true },
@@ -180,11 +179,9 @@ export default function TrackOrder() {
         {!isCancelled && (assignedRiderName ? (
           <div className="rider-card">
             <div className="rider-header">
-              <img 
-                src={assignedRiderAvatar} 
-                alt={assignedRiderName} 
-                className="rider-avatar"
-              />
+              <div className="rider-avatar-icon-badge">
+                <Bike size={26} color="#e63946" />
+              </div>
               <div className="rider-details">
                 <h4>{assignedRiderName}</h4>
                 <p className="vehicle">{assignedRiderVehicle}</p>

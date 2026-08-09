@@ -4,10 +4,10 @@ import Stripe from "stripe";
 
 // Pre-configured active delivery partners for assignment
 const DELIVERY_BOYS = [
-  { id: "DB001", name: "Rahul Kumar", phone: "+91 98765 43210", vehicle: "Honda Activa (UP16 AB 1234)", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" },
-  { id: "DB002", name: "Vikram Singh", phone: "+91 98123 45678", vehicle: "TVS Jupiter (UP16 CD 5678)", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" },
-  { id: "DB003", name: "Amit Sharma", phone: "+91 97111 22334", vehicle: "Hero Splendor (UP16 EF 9012)", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80" },
-  { id: "DB004", name: "Priya Sharma", phone: "+91 99887 76655", vehicle: "Ather 450X (UP16 GH 3456)", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80" }
+  { id: "DB001", name: "Rahul Kumar", phone: "+91 98765 43210", vehicle: "Honda Activa (UP16 AB 1234)" },
+  { id: "DB002", name: "Vikram Singh", phone: "+91 98123 45678", vehicle: "TVS Jupiter (UP16 CD 5678)" },
+  { id: "DB003", name: "Amit Sharma", phone: "+91 97111 22334", vehicle: "Hero Splendor (UP16 EF 9012)" },
+  { id: "DB004", name: "Priya Sharma", phone: "+91 99887 76655", vehicle: "Ather 450X (UP16 GH 3456)" }
 ];
 
 const placeOrder = async (req, res) => {
