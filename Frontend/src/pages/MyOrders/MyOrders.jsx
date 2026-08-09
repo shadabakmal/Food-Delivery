@@ -11,31 +11,56 @@ export default function MyOrders() {
   const navigate = useNavigate();
 
   const syncCancelledStorage = (targetId) => {
-    const userKey = token ? `user_orders_${token}` : 'recent_orders';
-    try {
-      const stored = localStorage.getItem(userKey);
-      if (stored) {
-        const parsed = JSON.parse(stored).map(o => o._id === targetId ? { ...o, status: "Cancelled" } : o);
-        localStorage.setItem(userKey, JSON.stringify(parsed));
-      }
-    } catch (e) {}
+    const keys = [
+      token ? `user_orders_${token}` : null,
+      'recent_orders'
+    ].filter(Boolean);
+
+    keys.forEach(k => {
+      try {
+        const stored = localStorage.getItem(k);
+        if (stored) {
+          const parsed = JSON.parse(stored).map(o => o._id === targetId ? { ...o, status: "Cancelled" } : o);
+          localStorage.setItem(k, JSON.stringify(parsed));
+        }
+      } catch (e) {}
+    });
   };
 
   const fetchOrders = async () => {
-    // 1. Authenticated User flow (Isolate user account orders completely)
+    // 1. Authenticated User flow
     if (token) {
       const userKey = `user_orders_${token}`;
       let localUserOrders = [];
+      let recentOrders = [];
 
       try {
-        const stored = localStorage.getItem(userKey);
-        if (stored) {
-          localUserOrders = JSON.parse(stored);
+        const storedUser = localStorage.getItem(userKey);
+        if (storedUser) localUserOrders = JSON.parse(storedUser);
+      } catch (e) {}
+
+      try {
+        const storedRecent = localStorage.getItem('recent_orders');
+        if (storedRecent) recentOrders = JSON.parse(storedRecent);
+      } catch (e) {}
+
+      // Combine local user orders + recent orders so no placed order ever gets lost
+      const mergedLocal = [...localUserOrders];
+      recentOrders.forEach(rec => {
+        if (!mergedLocal.some(o => o._id === rec._id)) {
+          mergedLocal.push(rec);
         }
-      } catch (e) {
-        console.warn("User local orders parse error:", e);
+      });
+
+      // Immediately render local orders to prevent flashing / vanishing on refresh
+      if (mergedLocal.length > 0) {
+        setData(mergedLocal);
+        try {
+          localStorage.setItem(userKey, JSON.stringify(mergedLocal));
+        } catch (e) {}
       }
 
+      // Query Backend API for server-synced orders
       try {
         const response = await axios.post(
           url + "api/order/userorders",
@@ -45,34 +70,35 @@ export default function MyOrders() {
 
         if (response.data && response.data.success && Array.isArray(response.data.data)) {
           const apiOrders = response.data.data;
-          const combined = [...apiOrders];
+          const finalCombined = [...apiOrders];
           
-          // Merge any locally cached cancelled flags for this user
-          localUserOrders.forEach(loc => {
-            const matchIdx = combined.findIndex(o => o._id === loc._id);
+          // Unconditionally preserve local orders & sync status changes
+          mergedLocal.forEach(loc => {
+            const matchIdx = finalCombined.findIndex(o => o._id === loc._id);
             if (matchIdx !== -1) {
               if (loc.status === 'Cancelled') {
-                combined[matchIdx].status = 'Cancelled';
+                finalCombined[matchIdx].status = 'Cancelled';
               }
-            } else if (loc.userId === token || loc.isUserOrder) {
-              combined.push(loc);
+            } else {
+              finalCombined.push(loc);
             }
           });
 
-          // Save isolated user orders to localStorage
-          localStorage.setItem(userKey, JSON.stringify(combined));
-          setData(combined);
+          localStorage.setItem(userKey, JSON.stringify(finalCombined));
+          setData(finalCombined);
           return;
         }
       } catch (error) {
-        console.warn("Backend orders API offline, using local user orders:", error.message);
+        console.warn("Backend orders API check:", error.message);
       }
 
-      setData(localUserOrders);
+      if (mergedLocal.length > 0) {
+        setData(mergedLocal);
+      }
       return;
     }
 
-    // 2. Unauthenticated Guest flow (Only read guest recent orders)
+    // 2. Unauthenticated Guest flow
     let guestOrders = [];
     try {
       const stored = localStorage.getItem('recent_orders');
