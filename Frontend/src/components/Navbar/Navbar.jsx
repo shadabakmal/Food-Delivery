@@ -47,7 +47,7 @@ function Navbar({ setShowLogin }) {
       <nav className='navbar-container'>
         {/* Brand Logo */}
         <Link to='/' className="navbar-logo-link">
-          <span className="logo-text">Tomato<span className="logo-dot">.</span></span>
+          <span className="logo-text">Crave<span className="logo-highlight">Dash</span><span className="logo-dot">.</span></span>
         </Link>
 
         {/* Navigation Links */}

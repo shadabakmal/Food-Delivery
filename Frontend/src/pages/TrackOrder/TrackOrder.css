@@ -10,12 +10,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
   color: white;
   padding: 20px 24px;
   border-radius: 16px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 25px rgba(230, 57, 70, 0.25);
+  box-shadow: 0 10px 25px rgba(255, 71, 87, 0.25);
   flex-wrap: wrap;
   gap: 14px;
 }

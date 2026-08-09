@@ -9,10 +9,10 @@ export default function Footer() {
       <div className="footer-content">
         <div className="footer-content-left">
           <div className="footer-logo">
-            <span className="logo-text">Tomato<span className="logo-dot">.</span></span>
+            <span className="logo-text">Crave<span className="logo-highlight">Dash</span><span className="logo-dot">.</span></span>
           </div>
           <p>
-            Delivering hot, fresh, and delicious meals straight to your doorstep with speed and safety. Experience fine dining at home with Tomato.
+            Delivering hot, fresh, and delicious meals straight to your doorstep with speed and safety. Satisfy your ultimate cravings anytime with CraveDash!
           </p>
           <div className="footer-social-icon">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" title="Facebook">
@@ -39,13 +39,13 @@ export default function Footer() {
           <h2>GET IN TOUCH</h2>
           <ul>
             <li>📞 +91 98765 43210</li>
-            <li>✉️ support@tomato.com</li>
+            <li>✉️ support@cravedash.com</li>
             <li>📍 Connaught Place, New Delhi, India</li>
           </ul>
         </div>
       </div>
       <hr />
-      <p className="footer-copyright">Copyright 2026 © Tomato.com - All Rights Reserved.</p>
+      <p className="footer-copyright">Copyright 2026 © CraveDash.com - All Rights Reserved.</p>
     </footer>
   );
 }

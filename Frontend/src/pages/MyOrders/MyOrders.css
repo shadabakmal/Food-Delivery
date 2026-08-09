@@ -121,14 +121,14 @@
 
 .live-map-btn {
   border: none;
-  background: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.25);
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.25);
 }
 
 .live-map-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(230, 57, 70, 0.35);
+  box-shadow: 0 6px 16px rgba(255, 71, 87, 0.35);
 }
 
 .cancel-order-btn {

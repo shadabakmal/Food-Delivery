@@ -25,6 +25,22 @@
   flex-direction: column;
 }
 
+.footer-logo .logo-text {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.footer-logo .logo-highlight {
+  color: #ff4757;
+}
+
+.footer-logo .logo-dot {
+  color: #ffa502;
+  font-size: 34px;
+}
+
 .footer-content p {
   line-height: 1.6;
   font-size: 14px;
@@ -56,7 +72,7 @@
 }
 
 .footer-content a:hover {
-  color: #e63946;
+  color: #ff4757;
 }
 
 .footer-social-icon {
@@ -79,10 +95,10 @@
 }
 
 .footer-social-icon a:hover {
-  background: #e63946;
-  border-color: #e63946;
+  background: #ff4757;
+  border-color: #ff4757;
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(230, 57, 70, 0.4);
+  box-shadow: 0 6px 16px rgba(255, 71, 87, 0.4);
 }
 
 .footer-social-icon img {

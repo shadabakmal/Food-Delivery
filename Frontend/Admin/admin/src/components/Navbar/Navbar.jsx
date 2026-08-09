@@ -19,9 +19,11 @@ export default function Navbar({ setShowLogin, adminToken, setAdminToken, adminN
   return (
     <div className='navbar'>
       <div className="brand-left">
-        <img className="logo" src={assets.logo} alt="Tomato Admin Logo" />
+        <span className="logo-text" style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+          Crave<span style={{ color: '#ff4757' }}>Dash</span><span style={{ color: '#ffa502' }}>.</span>
+        </span>
         <span className="admin-title-badge">
-          <ShieldCheck size={14} color="#e63946" /> ADMIN PANEL
+          <ShieldCheck size={14} color="#ff4757" /> ADMIN PORTAL
         </span>
       </div>
 
@@ -44,7 +46,7 @@ export default function Navbar({ setShowLogin, adminToken, setAdminToken, adminN
             {dropdownOpen && (
               <div className="admin-dropdown-menu">
                 <div className="dropdown-user-header">
-                  <p className="user-email">admin@tomato.com</p>
+                  <p className="user-email">admin@cravedash.com</p>
                   <span className="status-online">● Active Admin</span>
                 </div>
                 <hr />
