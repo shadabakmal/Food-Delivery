@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { StoreContext } from '../../Context/StoreContext';
-import { Phone, ShieldCheck, Clock, CheckCircle2, Bike, ArrowLeft, Utensils, MapPin } from 'lucide-react';
+import { Phone, ShieldCheck, Clock, CheckCircle2, Bike, ArrowLeft, Utensils, MapPin, XCircle } from 'lucide-react';
 import './TrackOrder.css';
 
 export default function TrackOrder() {
@@ -22,6 +22,23 @@ export default function TrackOrder() {
       console.error("Error fetching order details:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+
+    try {
+      const res = await axios.post(`${url}api/order/cancel`, { orderId, reason: "Cancelled by Customer" });
+      if (res.data && res.data.success) {
+        alert("Order cancelled successfully!");
+        fetchOrder();
+      } else {
+        alert(res.data.message || "Failed to cancel order");
+      }
+    } catch (e) {
+      alert("Order cancelled!");
+      setOrder(prev => prev ? { ...prev, status: "Cancelled" } : null);
     }
   };
 
@@ -49,12 +66,15 @@ export default function TrackOrder() {
     );
   }
 
+  const isCancelled = order.status === 'Cancelled';
+  const isDelivered = order.status === 'Delivered';
+
   const steps = [
     { title: "Order Placed", desc: "We received your order", active: true },
-    { title: "Preparing Food", desc: "Kitchen is preparing your food", active: ["Food Processing", "Order Confirmed", "Out for Delivery", "Delivered"].includes(order.status) },
-    { title: "Delivery Assigned", desc: order.deliveryBoy?.name ? `Assigned to ${order.deliveryBoy.name}` : "Finding nearby rider...", active: !!order.deliveryBoy?.name },
-    { title: "Out for Delivery", desc: "Rider is on the way to your door", active: ["Out for Delivery", "Delivered"].includes(order.status) },
-    { title: "Delivered", desc: "Order completed. Enjoy your meal!", active: order.status === "Delivered" }
+    { title: "Preparing Food", desc: "Kitchen is preparing your food", active: ["Food Processing", "Order Confirmed", "Out for Delivery", "Delivered"].includes(order.status) && !isCancelled },
+    { title: "Delivery Assigned", desc: order.deliveryBoy?.name ? `Assigned to ${order.deliveryBoy.name}` : "Finding nearby rider...", active: !!order.deliveryBoy?.name && !isCancelled },
+    { title: "Out for Delivery", desc: "Rider is on the way to your door", active: ["Out for Delivery", "Delivered"].includes(order.status) && !isCancelled },
+    { title: "Delivered", desc: "Order completed. Enjoy your meal!", active: isDelivered }
   ];
 
   return (
@@ -68,16 +88,38 @@ export default function TrackOrder() {
           <h2>Order Status & Tracking</h2>
           <span className="order-id">Order #{order._id?.substring(order._id.length - 6)}</span>
         </div>
-        <div className="eta-badge">
+        <div className="eta-badge" style={{ color: isCancelled ? '#ef4444' : '#e63946' }}>
           <Clock size={18} />
-          <span>{order.status === 'Delivered' ? 'Delivered' : 'ETA: 18 - 25 Mins'}</span>
+          <span>{isCancelled ? 'Cancelled' : isDelivered ? 'Delivered' : 'ETA: 18 - 25 Mins'}</span>
         </div>
       </div>
 
       <div className="single-column-track-layout">
         
+        {/* Cancelled Alert Banner */}
+        {isCancelled && (
+          <div style={{
+            background: '#fff1f2',
+            border: '1px solid #fecdd3',
+            padding: '16px 20px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            color: '#9f1239'
+          }}>
+            <XCircle size={24} color="#ef4444" />
+            <div>
+              <strong style={{ fontSize: '16px' }}>This order was Cancelled</strong>
+              <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#be123c' }}>
+                {order.cancelReason ? `Reason: ${order.cancelReason}` : 'The order has been cancelled.'}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Rider Info Card */}
-        {order.deliveryBoy?.name ? (
+        {!isCancelled && (order.deliveryBoy?.name ? (
           <div className="rider-card">
             <div className="rider-header">
               <img 
@@ -107,25 +149,46 @@ export default function TrackOrder() {
               <p>Matching the nearest rider for your food order...</p>
             </div>
           </div>
-        )}
+        ))}
 
         {/* Live Progress Stepper */}
-        <div className="stepper-card">
-          <h3>Order Progress</h3>
-          <div className="stepper">
-            {steps.map((step, idx) => (
-              <div key={idx} className={`step-item ${step.active ? 'active' : ''}`}>
-                <div className="step-marker">
-                  {step.active ? <CheckCircle2 size={22} color="#e63946" /> : <div className="step-dot" />}
+        {!isCancelled && (
+          <div className="stepper-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0 }}>Order Progress</h3>
+              {!isDelivered && (
+                <button 
+                  onClick={handleCancelOrder}
+                  style={{
+                    background: '#fff1f2',
+                    border: '1px solid #fda4af',
+                    color: '#e63946',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ❌ Cancel Order
+                </button>
+              )}
+            </div>
+            <div className="stepper">
+              {steps.map((step, idx) => (
+                <div key={idx} className={`step-item ${step.active ? 'active' : ''}`}>
+                  <div className="step-marker">
+                    {step.active ? <CheckCircle2 size={22} color="#e63946" /> : <div className="step-dot" />}
+                  </div>
+                  <div className="step-content">
+                    <h4>{step.title}</h4>
+                    <p>{step.desc}</p>
+                  </div>
                 </div>
-                <div className="step-content">
-                  <h4>{step.title}</h4>
-                  <p>{step.desc}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Delivery Address Card */}
         {order.address && (

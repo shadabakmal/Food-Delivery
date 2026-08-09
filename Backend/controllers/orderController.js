@@ -237,6 +237,38 @@ const getOrderTracking = async (req, res) => {
   }
 };
 
+// Cancel order (User or Admin)
+const cancelOrder = async (req, res) => {
+  try {
+    const { orderId, reason } = req.body;
+    if (!orderId) {
+      return res.json({ success: false, message: "Order ID is required" });
+    }
+
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+
+    if (order.status === "Delivered") {
+      return res.json({ success: false, message: "Delivered orders cannot be cancelled" });
+    }
+
+    if (order.status === "Cancelled") {
+      return res.json({ success: false, message: "Order is already cancelled" });
+    }
+
+    order.status = "Cancelled";
+    if (reason) order.cancelReason = reason;
+    await order.save();
+
+    res.json({ success: true, message: "Order cancelled successfully", order });
+  } catch (error) {
+    console.error("Cancel order error:", error.message);
+    res.status(500).json({ success: false, message: "Error cancelling order" });
+  }
+};
+
 export { 
   placeOrder, 
   verifyOrder, 
@@ -247,5 +279,6 @@ export {
   assignDeliveryBoy, 
   updateDeliveryLocation, 
   getDeliveryBoys, 
-  getOrderTracking 
+  getOrderTracking,
+  cancelOrder
 };

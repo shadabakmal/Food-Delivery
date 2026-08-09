@@ -9,7 +9,8 @@ import {
   updateStatus, 
   assignDeliveryBoy, 
   updateDeliveryLocation, 
-  getDeliveryBoys 
+  getDeliveryBoys,
+  cancelOrder
 } from '../controllers/orderController.js';
 
 const orderRouter = express.Router();
@@ -22,6 +23,7 @@ orderRouter.post('/status', updateStatus);
 orderRouter.post('/assign', assignDeliveryBoy);
 orderRouter.post('/update-location', updateDeliveryLocation);
 orderRouter.get('/delivery-boys', getDeliveryBoys);
+orderRouter.post('/cancel', cancelOrder);
 orderRouter.get('/:id', getOrderById);
 
 export default orderRouter;

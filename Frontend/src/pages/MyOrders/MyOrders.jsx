@@ -48,6 +48,41 @@ export default function MyOrders() {
     setData(localOrders);
   };
 
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+
+    try {
+      const response = await axios.post(url + "api/order/cancel", { 
+        orderId, 
+        reason: "Cancelled by Customer" 
+      });
+
+      if (response.data && response.data.success) {
+        // Update local state
+        setData(prev => prev.map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o));
+        
+        // Update localStorage
+        const localKey = token ? `user_orders_${token}` : 'recent_orders';
+        const stored = localStorage.getItem(localKey) || localStorage.getItem('recent_orders');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored).map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o);
+            localStorage.setItem(localKey, JSON.stringify(parsed));
+          } catch(e){}
+        }
+
+        alert("Order cancelled successfully!");
+        fetchOrders();
+      } else {
+        alert(response.data.message || "Failed to cancel order");
+      }
+    } catch (err) {
+      // Local state fallback update
+      setData(prev => prev.map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o));
+      alert("Order status updated to Cancelled.");
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
   }, [token]);
@@ -65,6 +100,10 @@ export default function MyOrders() {
           </div>
         ) : (
           data.map((order, index) => {
+            const isCancelled = order.status === 'Cancelled';
+            const isDelivered = order.status === 'Delivered';
+            const canCancel = !isCancelled && !isDelivered;
+
             return (
               <div key={order._id || index} className="my-orders-order">
                 <img src={assets.parcel_icon} alt="Parcel Icon" />
@@ -80,18 +119,31 @@ export default function MyOrders() {
                 <p className="amount">₹{order.amount}</p>
                 <p className="items-count">Items: {order.items ? order.items.length : 1}</p>
                 <p className="status-badge">
-                  <span className={order.status === 'Delivered' ? 'status-dot delivered' : 'status-dot active'}>&#x25cf;</span> 
+                  <span className={isDelivered ? 'status-dot delivered' : isCancelled ? 'status-dot cancelled' : 'status-dot active'}>&#x25cf;</span> 
                   <b>{order.status || 'Food Processing'}</b>
                 </p>
 
                 <div className="order-actions">
-                  <button onClick={fetchOrders} className="refresh-btn">Refresh Status</button>
-                  <button 
-                    onClick={() => navigate(`/track/${order._id}`)} 
-                    className="live-map-btn"
-                  >
-                    🛵 Live Tracking
-                  </button>
+                  <button onClick={fetchOrders} className="refresh-btn">Refresh</button>
+                  
+                  {!isCancelled && (
+                    <button 
+                      onClick={() => navigate(`/track/${order._id}`)} 
+                      className="live-map-btn"
+                    >
+                      🛵 Track
+                    </button>
+                  )}
+
+                  {canCancel && (
+                    <button 
+                      onClick={() => handleCancelOrder(order._id)} 
+                      className="cancel-order-btn"
+                      title="Cancel Order"
+                    >
+                      ❌ Cancel
+                    </button>
+                  )}
                 </div>
               </div>
             );

@@ -59,14 +59,19 @@
     color: #2a9d8f;
 }
 
+.status-dot.cancelled {
+    color: #ef4444;
+}
+
 .order-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .refresh-btn {
     border: 1px solid #cbd5e1;
-    padding: 8px 14px;
+    padding: 7px 12px;
     border-radius: 8px;
     background-color: #f8fafc;
     cursor: pointer;
@@ -82,7 +87,7 @@
 
 .live-map-btn {
     border: none;
-    padding: 8px 14px;
+    padding: 7px 12px;
     border-radius: 8px;
     background: linear-gradient(135deg, #e63946 0%, #d62828 100%);
     cursor: pointer;
@@ -95,6 +100,23 @@
 
 .live-map-btn:hover {
     transform: scale(1.03);
+}
+
+.cancel-order-btn {
+    border: 1px solid #fecdd3;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: #fff1f2;
+    color: #e63946;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.cancel-order-btn:hover {
+    background: #ffe4e6;
+    border-color: #fda4af;
 }
 
 @media (max-width: 768px) {

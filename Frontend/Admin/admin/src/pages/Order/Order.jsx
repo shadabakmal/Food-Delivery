@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './Order.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Bike, CheckCircle, Clock, MapPin, Package, UserCheck, Play, Lock } from 'lucide-react';
+import { Bike, CheckCircle, Clock, MapPin, Package, UserCheck, Play, Lock, XCircle } from 'lucide-react';
 
 export default function Order({ url, adminToken, setShowLogin }) {
   const [orders, setOrders] = useState([]);
@@ -54,6 +54,26 @@ export default function Order({ url, adminToken, setShowLogin }) {
       }
     } catch (err) {
       toast.error("Error updating status");
+    }
+  };
+
+  const cancelOrderHandler = async (orderId) => {
+    if (!checkAuth("cancel order")) return;
+    if (!window.confirm("Are you sure you want to cancel this order as Admin?")) return;
+
+    try {
+      const response = await axios.post(url + "api/order/cancel", { 
+        orderId, 
+        reason: "Cancelled by Admin" 
+      });
+      if (response.data && response.data.success) {
+        toast.success("Order cancelled successfully!");
+        await fetchOrders();
+      } else {
+        toast.error(response.data.message || "Error cancelling order");
+      }
+    } catch (err) {
+      toast.error("Error cancelling order");
     }
   };
 
@@ -219,7 +239,7 @@ export default function Order({ url, adminToken, setShowLogin }) {
                       <select 
                         onChange={(e) => assignDeliveryBoyHandler(order._id, e.target.value)}
                         defaultValue=""
-                        disabled={!adminToken}
+                        disabled={!adminToken || order.status === 'Cancelled'}
                         style={{ cursor: adminToken ? 'pointer' : 'not-allowed', opacity: adminToken ? 1 : 0.6 }}
                       >
                         <option value="" disabled>-- Select Rider to Assign --</option>
@@ -233,7 +253,7 @@ export default function Order({ url, adminToken, setShowLogin }) {
                   )}
 
                   {/* Re-assign option */}
-                  {order.deliveryBoy?.name && (
+                  {order.deliveryBoy?.name && order.status !== 'Cancelled' && (
                     <select 
                       className="reassign-select"
                       onChange={(e) => assignDeliveryBoyHandler(order._id, e.target.value)}
@@ -265,14 +285,40 @@ export default function Order({ url, adminToken, setShowLogin }) {
                     <option value="Order Confirmed">Order Confirmed</option>
                     <option value="Out for Delivery">Out for Delivery</option>
                     <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
                   </select>
 
-                  {order.deliveryBoy?.name && order.status !== 'Delivered' && (
+                  {order.status !== 'Cancelled' && order.status !== 'Delivered' && (
+                    <button 
+                      className="admin-cancel-btn"
+                      onClick={() => cancelOrderHandler(order._id)}
+                      disabled={!adminToken}
+                      style={{
+                        marginTop: '8px',
+                        background: '#fff1f2',
+                        border: '1px solid #fecdd3',
+                        color: '#e63946',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        cursor: adminToken ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <XCircle size={14} /> Cancel Order
+                    </button>
+                  )}
+
+                  {order.deliveryBoy?.name && order.status !== 'Delivered' && order.status !== 'Cancelled' && (
                     <button 
                       className="admin-sim-btn"
                       onClick={() => simulateRiderMovement(order)}
                       disabled={!adminToken}
-                      style={{ cursor: adminToken ? 'pointer' : 'not-allowed', opacity: adminToken ? 1 : 0.6 }}
+                      style={{ cursor: adminToken ? 'pointer' : 'not-allowed', opacity: adminToken ? 1 : 0.6, marginTop: '6px' }}
                     >
                       <Play size={14} /> Run Live GPS Simulation
                     </button>
