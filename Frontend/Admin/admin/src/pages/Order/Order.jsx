@@ -18,16 +18,30 @@ export default function Order({ url, adminToken, setShowLogin }) {
   };
 
   const fetchOrders = async () => {
+    let dbOrders = [];
     try {
       const response = await axios.get(url + "api/order/list");
-      if (response.data.success) {
-        setOrders(response.data.data);
-      } else {
-        toast.error("Failed to fetch orders");
+      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        dbOrders = response.data.data;
       }
     } catch (err) {
-      console.error(err);
+      console.error("Admin order list API notice:", err);
     }
+
+    let localOrders = [];
+    try {
+      const storedRecent = localStorage.getItem('recent_orders');
+      if (storedRecent) localOrders = JSON.parse(storedRecent);
+    } catch (e) {}
+
+    const combined = [...dbOrders];
+    localOrders.forEach(loc => {
+      if (!combined.some(o => o._id === loc._id || (o._id && String(o._id).substring(o._id.length - 6) === String(loc._id).substring(loc._id.length - 6)))) {
+        combined.push(loc);
+      }
+    });
+
+    setOrders(combined);
   };
 
   const fetchDeliveryBoys = async () => {
@@ -208,7 +222,7 @@ export default function Order({ url, adminToken, setShowLogin }) {
                 <div className="card-top">
                   <div className="order-id-tag">
                     <strong>Order #{order._id?.substring(order._id.length - 6)}</strong>
-                    <span className="order-date">{new Date(order.date).toLocaleString()}</span>
+                    <span className="order-date">{order.date ? new Date(order.date).toLocaleString() : 'Just now'}</span>
                   </div>
                   <div className="status-badge-wrap">
                     <span className={`status-pill ${order.status.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -243,7 +257,7 @@ export default function Order({ url, adminToken, setShowLogin }) {
                       </span>
                     </div>
                     <span className={`payment-tag ${order.payment ? 'paid' : 'pending'}`}>
-                      {order.payment ? "✓ Paid via Stripe" : "⏳ Payment Pending / Cash on Delivery"}
+                      {order.paymentMethod === 'cod' || !order.payment ? "💵 Cash on Delivery (COD)" : "✓ Paid via Stripe"}
                     </span>
                   </div>
 

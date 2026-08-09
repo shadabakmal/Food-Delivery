@@ -50,6 +50,8 @@ const placeOrder = async (req, res) => {
     if (paymentMethod === "cod") {
       return res.json({ 
         success: true, 
+        orderId: newOrder._id,
+        order: newOrder,
         session_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}` 
       });
     }

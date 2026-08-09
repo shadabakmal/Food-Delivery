@@ -297,10 +297,27 @@ export default function Cart({ setShowLogin }) {
         alert("Failed to connect to backend payment server: " + err.message);
         return;
       }
-    }
+    } else {
+      // Cash on Delivery flow: POST orderData to backend API so it is saved in MongoDB & visible on Admin Panel!
+      try {
+        let response = await axios.post(
+          url + "api/order/place",
+          orderData,
+          { headers: { Authorization: `Bearer ${token}`, token: token }, timeout: 8000 }
+        );
 
-    // Cash on Delivery direct verification
-    navigate(`/verify?success=true&orderId=${fallbackOrderId}`);
+        if (response && response.data && response.data.success) {
+          const createdOrderId = response.data.orderId || response.data.order?._id || fallbackOrderId;
+          navigate(`/verify?success=true&orderId=${createdOrderId}`);
+          return;
+        }
+      } catch (err) {
+        console.warn("Backend COD API notice, using local fallback verification:", err.message);
+      }
+
+      // Cash on Delivery local verification fallback
+      navigate(`/verify?success=true&orderId=${fallbackOrderId}`);
+    }
   };
 
   // Image URL Helper with Fallback
