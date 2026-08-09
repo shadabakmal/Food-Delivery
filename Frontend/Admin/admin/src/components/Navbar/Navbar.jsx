@@ -1,11 +1,65 @@
-import React from 'react'
-import './Navbar.css'
-import {assets} from '../../assets/admin_assets/assets'
-export default function Navbar() {
+import React, { useState } from 'react';
+import './Navbar.css';
+import { assets } from '../../assets/admin_assets/assets';
+import { LogOut, ShieldCheck, User, ChevronDown } from 'lucide-react';
+import { toast } from 'react-toastify';
+
+export default function Navbar({ setShowLogin, adminToken, setAdminToken, adminName, setAdminName }) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminName");
+    setAdminToken("");
+    setAdminName("");
+    setDropdownOpen(false);
+    toast.info("Admin logged out");
+  };
+
   return (
     <div className='navbar'>
-        <img  className="logo" src={assets.logo} alt="" />
-        <img src={assets.profile_image} alt="" />
+      <div className="brand-left">
+        <img className="logo" src={assets.logo} alt="Tomato Admin Logo" />
+        <span className="admin-title-badge">
+          <ShieldCheck size={14} color="#e63946" /> ADMIN PANEL
+        </span>
+      </div>
+
+      <div className="admin-profile-section">
+        {adminToken ? (
+          <div className="profile-pill-wrapper">
+            <div className="profile-pill" onClick={() => setDropdownOpen(!dropdownOpen)}>
+              <img 
+                src={assets.profile_image} 
+                alt="Admin Profile" 
+                className="profile-img" 
+              />
+              <div className="profile-text-col">
+                <span className="profile-name">{adminName || "Shadab Akmal"}</span>
+                <span className="profile-role">Super Admin</span>
+              </div>
+              <ChevronDown size={14} className={`chevron-icon ${dropdownOpen ? 'open' : ''}`} />
+            </div>
+
+            {dropdownOpen && (
+              <div className="admin-dropdown-menu">
+                <div className="dropdown-user-header">
+                  <p className="user-email">admin@tomato.com</p>
+                  <span className="status-online">● Active Admin</span>
+                </div>
+                <hr />
+                <button className="logout-btn" onClick={handleLogout}>
+                  <LogOut size={16} /> Logout / Switch Account
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button className="admin-signin-btn" onClick={() => setShowLogin(true)}>
+            <User size={16} /> Admin Sign In
+          </button>
+        )}
+      </div>
     </div>
-  )
+  );
 }
