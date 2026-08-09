@@ -1,132 +1,169 @@
 .my-orders {
-    margin: 40px auto;
-    max-width: 1100px;
-    padding: 0 20px;
+  margin: 40px auto;
+  max-width: 1150px;
+  padding: 0 20px;
 }
 
 .my-orders h2 {
-    font-size: 24px;
-    font-weight: 700;
-    color: #2b2b2b;
-    margin-bottom: 20px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 24px;
 }
 
 .container {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .my-orders-order {
-    display: grid;
-    grid-template-columns: 50px 2fr 1fr 1fr 1.5fr 2fr;
-    align-items: center;
-    gap: 20px;
-    font-size: 14px;
-    padding: 16px 24px;
-    color: #333;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: grid;
+  grid-template-columns: 48px 2fr 1fr 1fr 1.3fr auto;
+  align-items: center;
+  gap: 18px;
+  font-size: 14px;
+  padding: 18px 24px;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
 }
 
 .my-orders-order:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
-.my-orders-order img {
-    width: 44px;
+.parcel-img {
+  width: 44px;
+  height: 44px;
+}
+
+.items-summary {
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.amount {
+  font-weight: 800;
+  color: #e63946;
+  font-size: 16px;
+}
+
+.items-count {
+  color: #64748b;
+  font-weight: 600;
 }
 
 .status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
 }
 
 .status-dot {
-    font-size: 14px;
+  font-size: 14px;
 }
 
 .status-dot.active {
-    color: #ff9f1c;
+  color: #ff9f1c;
 }
 
 .status-dot.delivered {
-    color: #2a9d8f;
+  color: #16a34a;
 }
 
 .status-dot.cancelled {
-    color: #ef4444;
+  color: #ef4444;
+}
+
+.status-text-cancelled {
+  color: #ef4444;
 }
 
 .order-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.refresh-btn, .live-map-btn, .cancel-order-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .refresh-btn {
-    border: 1px solid #cbd5e1;
-    padding: 7px 12px;
-    border-radius: 8px;
-    background-color: #f8fafc;
-    cursor: pointer;
-    color: #475569;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all 0.2s ease;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
 }
 
 .refresh-btn:hover {
-    background-color: #f1f5f9;
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
 .live-map-btn {
-    border: none;
-    padding: 7px 12px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #e63946 0%, #d62828 100%);
-    cursor: pointer;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 12px;
-    box-shadow: 0 4px 10px rgba(230, 57, 70, 0.25);
-    transition: transform 0.2s ease;
+  border: none;
+  background: linear-gradient(135deg, #e63946 0%, #d62828 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.25);
 }
 
 .live-map-btn:hover {
-    transform: scale(1.03);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(230, 57, 70, 0.35);
 }
 
 .cancel-order-btn {
-    border: 1px solid #fecdd3;
-    padding: 7px 12px;
-    border-radius: 8px;
-    background: #fff1f2;
-    color: #e63946;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 12px;
-    transition: all 0.2s ease;
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  color: #e63946;
 }
 
 .cancel-order-btn:hover {
-    background: #ffe4e6;
-    border-color: #fda4af;
+  background: #ffe4e6;
+  border-color: #fda4af;
 }
 
-@media (max-width: 768px) {
-    .my-orders-order {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        text-align: center;
-    }
+.cancelled-pill {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecdd3;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+}
 
-    .order-actions {
-        justify-content: center;
-    }
+@media (max-width: 900px) {
+  .my-orders-order {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .status-badge {
+    justify-content: center;
+  }
+
+  .order-actions {
+    justify-content: center;
+  }
 }

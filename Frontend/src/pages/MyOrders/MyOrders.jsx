@@ -10,6 +10,24 @@ export default function MyOrders() {
   const [data, setData] = useState([]);
   const navigate = useNavigate();
 
+  const syncCancelledStorage = (targetId) => {
+    const keys = [
+      token ? `user_orders_${token}` : null,
+      'recent_orders',
+      'user_orders_usr_guest'
+    ].filter(Boolean);
+
+    keys.forEach(k => {
+      try {
+        const stored = localStorage.getItem(k);
+        if (stored) {
+          const parsed = JSON.parse(stored).map(o => o._id === targetId ? { ...o, status: "Cancelled" } : o);
+          localStorage.setItem(k, JSON.stringify(parsed));
+        }
+      } catch (e) {}
+    });
+  };
+
   const fetchOrders = async () => {
     let localOrders = [];
     const localKey = token ? `user_orders_${token}` : 'recent_orders';
@@ -32,11 +50,18 @@ export default function MyOrders() {
 
         if (response.data && response.data.success && Array.isArray(response.data.data)) {
           const combined = [...response.data.data];
+          
           localOrders.forEach(loc => {
-            if (!combined.some(o => o._id === loc._id)) {
+            const matchIdx = combined.findIndex(o => o._id === loc._id);
+            if (matchIdx !== -1) {
+              if (loc.status === 'Cancelled') {
+                combined[matchIdx].status = 'Cancelled';
+              }
+            } else {
               combined.push(loc);
             }
           });
+
           setData(combined);
           return;
         }
@@ -51,6 +76,10 @@ export default function MyOrders() {
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm("Are you sure you want to cancel this order?")) return;
 
+    // Instantly sync local state & storage
+    syncCancelledStorage(orderId);
+    setData(prev => prev.map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o));
+
     try {
       const response = await axios.post(url + "api/order/cancel", { 
         orderId, 
@@ -58,28 +87,12 @@ export default function MyOrders() {
       });
 
       if (response.data && response.data.success) {
-        // Update local state
-        setData(prev => prev.map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o));
-        
-        // Update localStorage
-        const localKey = token ? `user_orders_${token}` : 'recent_orders';
-        const stored = localStorage.getItem(localKey) || localStorage.getItem('recent_orders');
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored).map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o);
-            localStorage.setItem(localKey, JSON.stringify(parsed));
-          } catch(e){}
-        }
-
         alert("Order cancelled successfully!");
-        fetchOrders();
-      } else {
-        alert(response.data.message || "Failed to cancel order");
       }
     } catch (err) {
-      // Local state fallback update
-      setData(prev => prev.map(o => o._id === orderId ? { ...o, status: "Cancelled" } : o));
-      alert("Order status updated to Cancelled.");
+      console.warn("Backend order cancel notice:", err.message);
+    } finally {
+      fetchOrders();
     }
   };
 
@@ -106,7 +119,8 @@ export default function MyOrders() {
 
             return (
               <div key={order._id || index} className="my-orders-order">
-                <img src={assets.parcel_icon} alt="Parcel Icon" />
+                <img src={assets.parcel_icon} alt="Parcel Icon" className="parcel-img" />
+                
                 <p className="items-summary">
                   {order.items && order.items.map((item, idx) => {
                     if (idx === order.items.length - 1) {
@@ -116,11 +130,14 @@ export default function MyOrders() {
                     }
                   })}
                 </p>
+                
                 <p className="amount">₹{order.amount}</p>
+                
                 <p className="items-count">Items: {order.items ? order.items.length : 1}</p>
+                
                 <p className="status-badge">
                   <span className={isDelivered ? 'status-dot delivered' : isCancelled ? 'status-dot cancelled' : 'status-dot active'}>&#x25cf;</span> 
-                  <b>{order.status || 'Food Processing'}</b>
+                  <b className={isCancelled ? 'status-text-cancelled' : ''}>{order.status || 'Food Processing'}</b>
                 </p>
 
                 <div className="order-actions">
@@ -143,6 +160,10 @@ export default function MyOrders() {
                     >
                       ❌ Cancel
                     </button>
+                  )}
+
+                  {isCancelled && (
+                    <span className="cancelled-pill">Cancelled</span>
                   )}
                 </div>
               </div>

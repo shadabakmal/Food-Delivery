@@ -142,7 +142,17 @@ const listOrders = async (req, res) => {
 
 const updateStatus = async (req, res) => {
   try {
-    await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status });
+    const { orderId, status } = req.body;
+    const order = await orderModel.findById(orderId);
+    if (!order) return res.json({ success: false, message: "Order not found" });
+
+    // Locked state: Cancelled order status cannot be modified back
+    if (order.status === "Cancelled" && status !== "Cancelled") {
+      return res.json({ success: false, message: "Cancelled orders cannot be modified" });
+    }
+
+    order.status = status;
+    await order.save();
     res.json({ success: true, message: "Status Updated" });
   } catch (error) {
     console.log(error);
