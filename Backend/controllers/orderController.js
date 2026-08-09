@@ -146,7 +146,10 @@ const updateStatus = async (req, res) => {
     const order = await orderModel.findById(orderId);
     if (!order) return res.json({ success: false, message: "Order not found" });
 
-    // Locked state: Cancelled order status cannot be modified back
+    // Locked states: Delivered and Cancelled order statuses cannot be modified
+    if (order.status === "Delivered" && status !== "Delivered") {
+      return res.json({ success: false, message: "Delivered orders cannot be modified" });
+    }
     if (order.status === "Cancelled" && status !== "Cancelled") {
       return res.json({ success: false, message: "Cancelled orders cannot be modified" });
     }
@@ -173,14 +176,19 @@ const getOrderById = async (req, res) => {
 const assignDeliveryBoy = async (req, res) => {
   try {
     const { orderId, deliveryBoyId } = req.body;
+    const order = await orderModel.findById(orderId);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    if (order.status === "Delivered" || order.status === "Cancelled") {
+      return res.json({ success: false, message: "Cannot re-assign rider for completed or cancelled order" });
+    }
+
     const boy = DELIVERY_BOYS.find(b => b.id === deliveryBoyId) || DELIVERY_BOYS[0];
-    const order = await orderModel.findByIdAndUpdate(orderId, {
-      deliveryBoyId: boy.id,
-      deliveryBoyName: boy.name,
-      deliveryBoyPhone: boy.phone,
-      deliveryBoyVehicle: boy.vehicle,
-      deliveryBoyAvatar: boy.avatar
-    }, { new: true });
+    order.deliveryBoyId = boy.id;
+    order.deliveryBoyName = boy.name;
+    order.deliveryBoyPhone = boy.phone;
+    order.deliveryBoyVehicle = boy.vehicle;
+    order.deliveryBoyAvatar = boy.avatar;
+    await order.save();
     res.json({ success: true, message: "Delivery boy assigned", order });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
