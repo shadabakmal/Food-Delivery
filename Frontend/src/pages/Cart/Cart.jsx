@@ -293,6 +293,7 @@ export default function Cart({ setShowLogin }) {
           const realOrderId = response.data.orderId || response.data.order?._id || ("ORD" + Date.now());
           saveLocalOrder({
             _id: realOrderId,
+            userToken: token,
             items: orderItems,
             amount: finalTotal,
             address: selectedAddressObj,
@@ -338,6 +339,7 @@ export default function Cart({ setShowLogin }) {
 
       saveLocalOrder({
         _id: realOrderId,
+        userToken: token,
         items: orderItems,
         amount: finalTotal,
         address: selectedAddressObj,

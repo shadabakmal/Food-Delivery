@@ -22,56 +22,63 @@ export default function MyOrders() {
   };
 
   const fetchOrders = async () => {
-    // 1. Authenticated User flow (100% Isolated to this specific logged-in user account token)
+    // 1. Authenticated User flow (Strictly isolated by session token)
     if (token) {
       const userKey = `user_orders_${token}`;
-      let localUserOrders = [];
 
-      try {
-        const storedUser = localStorage.getItem(userKey);
-        if (storedUser) {
-          localUserOrders = JSON.parse(storedUser);
-        }
-      } catch (e) {
-        console.warn("User local orders parse error:", e);
-      }
-
-      // Immediately render this account's local orders
-      setData(localUserOrders);
-
-      // Query Backend API for server-synced orders belonging to this account token
       try {
         const response = await axios.post(
           url + "api/order/userorders",
           {},
-          { headers: { Authorization: `Bearer ${token}` }, timeout: 3500 }
+          { headers: { Authorization: `Bearer ${token}` }, timeout: 4000 }
         );
 
         if (response.data && response.data.success && Array.isArray(response.data.data)) {
           const apiOrders = response.data.data;
-          const finalCombined = [...apiOrders];
           
-          // Merge local status updates for this specific user account
+          let localUserOrders = [];
+          try {
+            const storedUser = localStorage.getItem(userKey);
+            if (storedUser) localUserOrders = JSON.parse(storedUser);
+          } catch (e) {}
+
+          const combined = [...apiOrders];
+
+          // Only sync status for items present in backend or placed in current token session
           localUserOrders.forEach(loc => {
-            const matchIdx = finalCombined.findIndex(o => String(o._id) === String(loc._id));
+            const matchIdx = combined.findIndex(o => String(o._id) === String(loc._id));
             if (matchIdx !== -1) {
               if (loc.status === 'Cancelled') {
-                finalCombined[matchIdx].status = 'Cancelled';
+                combined[matchIdx].status = 'Cancelled';
               }
-            } else {
-              finalCombined.push(loc);
+            } else if (loc.userToken === token) {
+              combined.push(loc);
             }
           });
 
-          localStorage.setItem(userKey, JSON.stringify(finalCombined));
-          setData(finalCombined);
+          // Clean up stale local cache
+          localStorage.setItem(userKey, JSON.stringify(combined));
+          setData(combined);
           return;
         }
       } catch (error) {
-        console.warn("Backend orders API check:", error.message);
+        console.warn("Backend orders API offline notice:", error.message);
       }
 
-      setData(localUserOrders);
+      // Offline fallback: load only orders created in this specific token session
+      try {
+        const storedUser = localStorage.getItem(userKey);
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          if (Array.isArray(parsed)) {
+            const validUserOrders = parsed.filter(o => o.userToken === token);
+            setData(validUserOrders);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      setData([]);
       return;
     }
 
@@ -79,9 +86,7 @@ export default function MyOrders() {
     let guestOrders = [];
     try {
       const stored = localStorage.getItem('recent_orders');
-      if (stored) {
-        guestOrders = JSON.parse(stored);
-      }
+      if (stored) guestOrders = JSON.parse(stored);
     } catch (e) {}
 
     setData(guestOrders);
