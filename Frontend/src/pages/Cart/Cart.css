@@ -232,18 +232,25 @@
 }
 
 .auth-btn-outline {
-  border: 1px solid #60b246;
-  color: #60b246;
+  border: 1px solid #ff4757;
+  color: #ff4757;
   background: white;
   padding: 12px 20px;
   cursor: pointer;
   font-size: 12px;
   text-align: center;
   line-height: 1.4;
+  border-radius: 6px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.auth-btn-outline:hover {
+  background: #fff5f5;
 }
 
 .auth-btn-solid {
-  background: #60b246;
+  background: #ff4757;
   color: white;
   border: none;
   padding: 12px 20px;
@@ -251,6 +258,14 @@
   font-size: 12px;
   text-align: center;
   line-height: 1.4;
+  border-radius: 6px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.25);
+  transition: all 0.2s ease;
+}
+
+.auth-btn-solid:hover {
+  background: #e63946;
 }
 
 .no-saved-addr-prompt {
@@ -263,7 +278,7 @@
 }
 
 .add-new-btn-green {
-  background: #60b246;
+  background: #ff4757;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -271,6 +286,8 @@
   font-size: 13px;
   cursor: pointer;
   margin-top: 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.25);
 }
 
 .address-cards-grid {
@@ -292,8 +309,8 @@
 }
 
 .address-card.selected {
-  border-color: #60b246;
-  box-shadow: 0 4px 14px rgba(96, 178, 70, 0.15);
+  border-color: #ff4757;
+  box-shadow: 0 4px 14px rgba(255, 71, 87, 0.18);
 }
 
 .add-new-card-swiggy {
@@ -307,7 +324,7 @@
 }
 
 .add-new-card-swiggy:hover {
-  border-color: #60b246 !important;
+  border-color: #ff4757 !important;
 }
 
 .add-new-header-row {
@@ -327,7 +344,7 @@
   position: absolute;
   top: -4px;
   right: -6px;
-  background: #2a9d8f;
+  background: #ff4757;
   color: white;
   font-size: 11px;
   font-weight: 800;
@@ -350,8 +367,8 @@
 }
 
 .swiggy-add-new-outline-btn {
-  border: 1px solid #60b246;
-  color: #60b246;
+  border: 1px solid #ff4757;
+  color: #ff4757;
   background: white;
   padding: 10px 24px;
   font-weight: 800;
@@ -359,10 +376,11 @@
   cursor: pointer;
   letter-spacing: 0.5px;
   transition: all 0.2s ease;
+  border-radius: 6px;
 }
 
 .swiggy-add-new-outline-btn:hover {
-  background: #60b246;
+  background: #ff4757;
   color: white;
 }
 
@@ -398,7 +416,7 @@
 }
 
 .deliver-here-btn.active {
-  background: #60b246;
+  background: #ff4757;
 }
 
 /* Payment Methods Grid */
@@ -419,9 +437,9 @@
 }
 
 .payment-method-card.selected {
-  border-color: #60b246;
-  background: #f0fdf4;
-  box-shadow: 0 4px 14px rgba(96, 178, 70, 0.12);
+  border-color: #ff4757;
+  background: #fff5f5;
+  box-shadow: 0 4px 14px rgba(255, 71, 87, 0.12);
 }
 
 .pay-header-row {
@@ -432,15 +450,15 @@
 }
 
 .pay-header-row input[type="radio"] {
-  accent-color: #60b246;
+  accent-color: #ff4757;
   width: 16px;
   height: 16px;
   cursor: pointer;
 }
 
 .instant-badge {
-  background: #dcfce7;
-  color: #16a34a;
+  background: #fff1f2;
+  color: #ff4757;
   font-size: 11px;
   font-weight: 800;
   padding: 2px 8px;
@@ -545,7 +563,7 @@
 .item-qty-control button {
   background: transparent;
   border: none;
-  color: #60b246;
+  color: #ff4757;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -554,7 +572,7 @@
 .item-qty-control span {
   font-weight: 800;
   font-size: 12px;
-  color: #60b246;
+  color: #ff4757;
 }
 
 .item-price-str {
@@ -664,7 +682,7 @@
 .swiggy-pay-btn {
   width: 100%;
   margin-top: 20px;
-  background: #60b246;
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
   color: white;
   border: none;
   padding: 16px;
@@ -672,12 +690,14 @@
   font-weight: 800;
   cursor: pointer;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 14px rgba(96, 178, 70, 0.4);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(255, 71, 87, 0.35);
   transition: transform 0.2s ease;
 }
 
 .swiggy-pay-btn:hover {
   transform: translateY(-2px);
+  background: linear-gradient(135deg, #e63946 0%, #ff4757 100%);
 }
 
 /* Address Form Modal */

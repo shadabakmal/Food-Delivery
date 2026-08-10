@@ -212,12 +212,13 @@ export default function Cart({ setShowLogin }) {
   };
 
   const handleApplyCoupon = () => {
-    if (couponCode.trim().toUpperCase() === "TOMATO15") {
+    const code = couponCode.trim().toUpperCase();
+    if (code === "CRAVE15" || code === "CRAVEDASH15" || code === "TOMATO15") {
       setCouponApplied(true);
       setCouponError('');
     } else {
       setCouponApplied(false);
-      setCouponError('Invalid coupon! Try TOMATO15');
+      setCouponError('Invalid coupon! Try CRAVE15');
     }
   };
 
@@ -384,9 +385,11 @@ export default function Cart({ setShowLogin }) {
         <header className="swiggy-checkout-header">
           <div className="header-inner">
             <div className="brand-left">
-              <Link to="/" className="swiggy-brand-logo">
-                <span className="brand-icon">🍊</span>
-                <span className="brand-title">SECURE CHECKOUT</span>
+              <Link to="/" className="swiggy-brand-logo" style={{ textDecoration: 'none' }}>
+                <span className="brand-title" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '18px', fontWeight: 900 }}>
+                  <span style={{ color: '#ff4757', fontSize: '20px' }}>CraveDash.</span>
+                  <span style={{ color: '#64748b', fontSize: '12px', fontWeight: 700, letterSpacing: '1px' }}>| SECURE CHECKOUT</span>
+                </span>
               </Link>
             </div>
             <div className="header-right-nav">
@@ -442,9 +445,11 @@ export default function Cart({ setShowLogin }) {
       <header className="swiggy-checkout-header">
         <div className="header-inner">
           <div className="brand-left">
-            <Link to="/" className="swiggy-brand-logo">
-              <span className="brand-icon">🍊</span>
-              <span className="brand-title">SECURE CHECKOUT</span>
+            <Link to="/" className="swiggy-brand-logo" style={{ textDecoration: 'none' }}>
+              <span className="brand-title" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '18px', fontWeight: 900 }}>
+                <span style={{ color: '#ff4757', fontSize: '20px' }}>CraveDash.</span>
+                <span style={{ color: '#64748b', fontSize: '12px', fontWeight: 700, letterSpacing: '1px' }}>| SECURE CHECKOUT</span>
+              </span>
             </Link>
           </div>
           <div className="header-right-nav">
@@ -504,7 +509,7 @@ export default function Cart({ setShowLogin }) {
                       Have an account?<br/><strong>LOG IN</strong>
                     </button>
                     <button className="auth-btn-solid" onClick={() => setShowLogin && setShowLogin(true)}>
-                      New to Tomato?<br/><strong>SIGN UP</strong>
+                      New to CraveDash?<br/><strong>SIGN UP</strong>
                     </button>
                   </div>
                 </div>
@@ -601,7 +606,7 @@ export default function Cart({ setShowLogin }) {
                       checked={paymentMethod === 'stripe'} 
                       onChange={() => setPaymentMethod('stripe')} 
                     />
-                    <CreditCard size={18} color="#60b246" />
+                    <CreditCard size={18} color="#ff4757" />
                     <strong>Stripe Online Payment</strong>
                     <span className="instant-badge">Instant</span>
                   </div>
@@ -640,7 +645,7 @@ export default function Cart({ setShowLogin }) {
                 <Utensils size={22} color="#e63946" />
               </div>
               <div>
-                <h4>Tomato Kitchen Hub</h4>
+                <h4>CraveDash Kitchen Hub</h4>
                 <p>Connaught Place, New Delhi</p>
               </div>
             </div>
@@ -706,7 +711,7 @@ export default function Cart({ setShowLogin }) {
                 <Tag size={16} color="#e63946" />
                 <input 
                   type="text" 
-                  placeholder="Apply Coupon (Use TOMATO15)" 
+                  placeholder="Apply Coupon (Use CRAVE15)" 
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
                 />
@@ -733,7 +738,7 @@ export default function Cart({ setShowLogin }) {
 
               {couponApplied && (
                 <div className="bill-row discount">
-                  <span>Item Discount (TOMATO15)</span>
+                  <span>Item Discount (CRAVE15)</span>
                   <span className="discount-val">- ₹{discount}</span>
                 </div>
               )}
