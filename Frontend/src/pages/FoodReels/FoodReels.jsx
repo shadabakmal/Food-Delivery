@@ -81,7 +81,7 @@ export default function FoodReels() {
   const containerRef = useRef(null);
 
   const resolveVideoUrl = (rawPath) => {
-    if (!rawPath) return '/videos/salad.mp4';
+    if (!rawPath) return 'https://res.cloudinary.com/djbq49p7b/video/upload/v1787251028/Green_salad.mp4';
     if (rawPath.startsWith('http')) return rawPath;
     if (url) {
       const cleanBase = url.replace(/\/$/, '');
@@ -96,6 +96,10 @@ export default function FoodReels() {
 
     video.muted = isMuted;
     video.playsInline = true;
+
+    try {
+      video.load();
+    } catch (e) {}
 
     const playPromise = video.play();
     if (playPromise !== undefined) {
@@ -116,14 +120,14 @@ export default function FoodReels() {
   useEffect(() => {
     const timer = setTimeout(() => {
       safePlayVideo(0);
-    }, 200);
+    }, 150);
     return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     const options = {
       root: containerRef.current,
-      threshold: 0.25
+      threshold: 0.2
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -243,19 +247,18 @@ export default function FoodReels() {
           return (
             <div key={reel.id} className="reel-card" data-index={index} onClick={() => togglePlay(index)}>
               
-              {/* HTML5 Video Element with internal video sources */}
+              {/* HTML5 Video Element with direct src and key attribute for forced React re-render */}
               <video
+                key={primaryUrl}
                 ref={el => videoRefs.current[index] = el}
+                src={primaryUrl}
                 className={`reel-video ${isPlaying ? 'playing-video-zoom' : ''}`}
                 autoPlay
                 loop
                 muted={isMuted}
                 playsInline
                 poster={reel.poster}
-              >
-                <source src={primaryUrl} type="video/mp4" />
-                <source src={reel.videoUrl} type="video/mp4" />
-              </video>
+              />
 
               {/* Dynamic Live Food Canvas Motion Overlay */}
               <LiveFoodCanvas isPlaying={isPlaying} />
@@ -290,7 +293,7 @@ export default function FoodReels() {
 
               {/* Play/Pause Overlay Indicator */}
               {!isPlaying && (
-                <div className="video-pause-indicator">
+                <div className="video-pause-indicator" onClick={() => togglePlay(index)}>
                   <Play size={40} fill="#fff" color="#fff" />
                 </div>
               )}
