@@ -3,14 +3,14 @@ import './FoodReels.css';
 import { reelsData } from '../../assets/frontend_assets/reelsData';
 import { StoreContext } from '../../Context/StoreContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Volume2, VolumeX, Heart, Share2, Star, ShoppingBag, Plus, Minus, Play, Flame, Film } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Heart, Share2, Star, ShoppingBag, Plus, Minus, Play, Pause, Flame } from 'lucide-react';
 
 export default function FoodReels() {
   const { cartItems, addToCart, removeFromCart, getTotalCartCount, getTotalCartAmount } = useContext(StoreContext);
   const navigate = useNavigate();
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(false); // Default unmuted with user interaction
+  const [isMuted, setIsMuted] = useState(true); // Default muted so browser autoplay NEVER gets blocked
   const [likedMap, setLikedMap] = useState({});
   const [likeCounts, setLikeCounts] = useState(() => {
     const initialCounts = {};
@@ -23,11 +23,33 @@ export default function FoodReels() {
   const videoRefs = useRef([]);
   const containerRef = useRef(null);
 
-  // Setup Intersection Observer for automatic video playback on scroll
+  // Safely play video with autoplay exception handling
+  const safePlayVideo = (index) => {
+    const video = videoRefs.current[index];
+    if (!video) return;
+
+    video.muted = isMuted;
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlayingMap(prev => ({ ...prev, [index]: true }));
+        })
+        .catch(err => {
+          console.warn("Muted play fallback:", err.message);
+          video.muted = true;
+          video.play()
+            .then(() => setIsPlayingMap(prev => ({ ...prev, [index]: true })))
+            .catch(e => setIsPlayingMap(prev => ({ ...prev, [index]: false })));
+        });
+    }
+  };
+
+  // Intersection Observer for scroll snapping video auto-play
   useEffect(() => {
     const options = {
       root: containerRef.current,
-      threshold: 0.7
+      threshold: 0.6
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -38,13 +60,7 @@ export default function FoodReels() {
         if (entry.isIntersecting) {
           setActiveIndex(index);
           if (video) {
-            video.currentTime = 0;
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => setIsPlayingMap(prev => ({ ...prev, [index]: true })))
-                .catch(() => setIsPlayingMap(prev => ({ ...prev, [index]: false })));
-            }
+            safePlayVideo(index);
           }
         } else {
           if (video) {
@@ -61,7 +77,7 @@ export default function FoodReels() {
     return () => {
       videoElements?.forEach(el => observer.unobserve(el));
     };
-  }, []);
+  }, [isMuted]);
 
   // Update volume/muted state across video elements
   useEffect(() => {
@@ -76,11 +92,23 @@ export default function FoodReels() {
     if (!video) return;
 
     if (video.paused) {
-      video.play();
-      setIsPlayingMap(prev => ({ ...prev, [index]: true }));
+      safePlayVideo(index);
     } else {
       video.pause();
       setIsPlayingMap(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
+  // Toggle Mute
+  const toggleMute = () => {
+    const nextMute = !isMuted;
+    setIsMuted(nextMute);
+    const currentVideo = videoRefs.current[activeIndex];
+    if (currentVideo) {
+      currentVideo.muted = nextMute;
+      if (currentVideo.paused) {
+        currentVideo.play().catch(() => {});
+      }
     }
   };
 
@@ -122,7 +150,7 @@ export default function FoodReels() {
             <span>CraveReels</span>
           </div>
 
-          <button className="reel-mute-top-btn" onClick={() => setIsMuted(!isMuted)} title={isMuted ? "Unmute Audio" : "Mute Audio"}>
+          <button className="reel-mute-top-btn" onClick={toggleMute} title={isMuted ? "Unmute Audio" : "Mute Audio"}>
             {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
           </button>
         </div>
@@ -151,15 +179,43 @@ export default function FoodReels() {
                 src={reel.videoUrl}
                 poster={reel.poster}
                 className="reel-video"
+                autoPlay
                 loop
-                playsInline
                 muted={isMuted}
+                playsInline
                 onClick={() => togglePlay(index)}
               />
 
+              {/* Mute / Tap to Play Indicator Banner */}
+              {isMuted && isPlaying && (
+                <div 
+                  onClick={toggleMute}
+                  style={{
+                    position: 'absolute',
+                    top: '70px',
+                    right: '20px',
+                    background: 'rgba(0,0,0,0.75)',
+                    color: 'white',
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    zIndex: 25,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backdropFilter: 'blur(4px)',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}
+                >
+                  <VolumeX size={14} /> Tap to Unmute
+                </div>
+              )}
+
               {/* Pause Overlay Indicator */}
               {!isPlaying && (
-                <div className="video-pause-indicator">
+                <div className="video-pause-indicator" onClick={() => togglePlay(index)}>
                   <Play size={36} fill="#fff" />
                 </div>
               )}
@@ -187,7 +243,7 @@ export default function FoodReels() {
 
                 {/* Mute Toggle Button */}
                 <div className="action-btn-item">
-                  <button className="action-circle-btn" onClick={() => setIsMuted(!isMuted)}>
+                  <button className="action-circle-btn" onClick={toggleMute}>
                     {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
                   </button>
                   <span>{isMuted ? 'Muted' : 'Sound'}</span>

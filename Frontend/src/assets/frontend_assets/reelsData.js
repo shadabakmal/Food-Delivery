@@ -9,7 +9,7 @@ export const reelsData = [
     likes: 14200,
     shares: 2300,
     description: "Crisp organic garden greens tossed with avocado, cherry tomatoes, and zesty lemon vinaigrette! 🌿✨",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-fresh-salad-ingredients-being-tossed-42861-large.mp4",
+    videoUrl: "https://vjs.zencdn.net/v/oceans.mp4",
     poster: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
     tags: ["Healthy", "Fresh", "Salad", "Organic"]
   },
@@ -23,7 +23,7 @@ export const reelsData = [
     likes: 38900,
     shares: 8900,
     description: "Extra cheesy baked lasagna rollups stuffed with ricotta, fresh basil, and rich marinara sauce! 🔥",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-cutting-a-piece-of-pizza-with-cheese-pull-42860-large.mp4",
+    videoUrl: "https://media.w3.org/2010/05/sintel/trailer_hd.mp4",
     poster: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80",
     tags: ["Cheesy", "Italian", "Pasta", "BestSeller"]
   },
@@ -37,7 +37,7 @@ export const reelsData = [
     likes: 27500,
     shares: 4100,
     description: "Hand-crafted vanilla ice cream topped with rich chocolate fudge drizzle and toasted almonds. 🍫✨",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-hands-adding-toppings-to-an-ice-cream-cone-42858-large.mp4",
+    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
     poster: "https://images.unsplash.com/photo-1567206563064-6f60f4078b57?auto=format&fit=crop&w=600&q=80",
     tags: ["Dessert", "IceCream", "Chocolate"]
   },
@@ -51,7 +51,7 @@ export const reelsData = [
     likes: 54100,
     shares: 12400,
     description: "Double patty grilled beef burger dripping with cheddar cheese, caramelized onions, and secret sauce! 🤤",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-close-up-of-a-delicious-burger-42859-large.mp4",
+    videoUrl: "https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4",
     poster: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80",
     tags: ["Burger", "Juicy", "MustTry"]
   },
@@ -65,7 +65,7 @@ export const reelsData = [
     likes: 42300,
     shares: 9800,
     description: "Wood-fired crust with molten mozzarella pull that stretches to infinity! 🤤🔥",
-    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-chef-preparing-a-pizza-in-a-restaurant-kitchen-42862-large.mp4",
+    videoUrl: "https://res.cloudinary.com/demo/video/upload/elephants.mp4",
     poster: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80",
     tags: ["Pizza", "CheesePull", "WoodFired"]
   }
