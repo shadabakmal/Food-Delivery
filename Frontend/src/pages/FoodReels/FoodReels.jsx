@@ -3,10 +3,10 @@ import './FoodReels.css';
 import { reelsData } from '../../assets/frontend_assets/reelsData';
 import { StoreContext } from '../../Context/StoreContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Volume2, VolumeX, Heart, Share2, Star, ShoppingBag, Plus, Minus, Play, Pause, Flame, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Heart, Share2, Star, ShoppingBag, Plus, Minus, Play, Pause, Flame } from 'lucide-react';
 
-// Live Animated Food Canvas Component (Guarantees 60FPS motion even if video stream lags)
-function LiveFoodCanvas({ poster, isPlaying }) {
+// Live Animated Food Canvas Component
+function LiveFoodCanvas({ isPlaying }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -63,11 +63,11 @@ function LiveFoodCanvas({ poster, isPlaying }) {
 }
 
 export default function FoodReels() {
-  const { cartItems, addToCart, removeFromCart, getTotalCartCount, getTotalCartAmount } = useContext(StoreContext);
+  const { cartItems, addToCart, removeFromCart, getTotalCartCount, getTotalCartAmount, url } = useContext(StoreContext);
   const navigate = useNavigate();
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true); // Default muted for browser autoplay policy compliance
+  const [isMuted, setIsMuted] = useState(true);
   const [likedMap, setLikedMap] = useState({});
   const [likeCounts, setLikeCounts] = useState(() => {
     const initialCounts = {};
@@ -76,12 +76,20 @@ export default function FoodReels() {
   });
   const [isPlayingMap, setIsPlayingMap] = useState({});
   const [copiedId, setCopiedId] = useState(null);
-  const [videoErrorMap, setVideoErrorMap] = useState({});
 
   const videoRefs = useRef([]);
   const containerRef = useRef(null);
 
-  // Safely play video with fallback
+  const resolveVideoUrl = (rawPath) => {
+    if (!rawPath) return '/videos/salad.mp4';
+    if (rawPath.startsWith('http')) return rawPath;
+    if (url) {
+      const cleanBase = url.replace(/\/$/, '');
+      return `${cleanBase}${rawPath}`;
+    }
+    return rawPath;
+  };
+
   const safePlayVideo = (index) => {
     const video = videoRefs.current[index];
     if (!video) return;
@@ -105,7 +113,6 @@ export default function FoodReels() {
     }
   };
 
-  // Initial mount auto-play for first video
   useEffect(() => {
     const timer = setTimeout(() => {
       safePlayVideo(0);
@@ -113,11 +120,10 @@ export default function FoodReels() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Intersection Observer for smooth scrolling auto-play
   useEffect(() => {
     const options = {
       root: containerRef.current,
-      threshold: 0.25 // Responsive threshold trigger
+      threshold: 0.25
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -147,14 +153,12 @@ export default function FoodReels() {
     };
   }, [isMuted]);
 
-  // Sync mute state
   useEffect(() => {
     videoRefs.current.forEach(v => {
       if (v) v.muted = isMuted;
     });
   }, [isMuted]);
 
-  // Toggle Video Play/Pause
   const togglePlay = (index) => {
     const video = videoRefs.current[index];
     if (!video) return;
@@ -167,7 +171,6 @@ export default function FoodReels() {
     }
   };
 
-  // Toggle Mute
   const toggleMute = () => {
     const nextMute = !isMuted;
     setIsMuted(nextMute);
@@ -180,7 +183,6 @@ export default function FoodReels() {
     }
   };
 
-  // Toggle Like
   const handleLike = (reelId) => {
     setLikedMap(prev => {
       const isLiked = !prev[reelId];
@@ -192,7 +194,6 @@ export default function FoodReels() {
     });
   };
 
-  // Handle Share
   const handleShare = (reelId) => {
     const shareUrl = window.location.origin + `/reels#${reelId}`;
     if (navigator.clipboard) {
@@ -200,18 +201,6 @@ export default function FoodReels() {
       setCopiedId(reelId);
       setTimeout(() => setCopiedId(null), 2000);
     }
-  };
-
-  // Backup video sources if main URL fails
-  const getBackupUrl = (index) => {
-    const backupList = [
-      "https://vjs.zencdn.net/v/oceans.mp4",
-      "https://media.w3.org/2010/05/sintel/trailer_hd.mp4",
-      "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-      "https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4",
-      "https://res.cloudinary.com/demo/video/upload/elephants.mp4"
-    ];
-    return backupList[index % backupList.length];
   };
 
   return (
@@ -249,29 +238,27 @@ export default function FoodReels() {
           const currentQty = cartItems[foodId] || 0;
           const isLiked = likedMap[reel.id] || false;
           const isPlaying = isPlayingMap[index] ?? true;
-          const videoSrc = videoErrorMap[index] ? getBackupUrl(index) : reel.videoUrl;
+          const primaryUrl = resolveVideoUrl(reel.videoUrl);
 
           return (
             <div key={reel.id} className="reel-card" data-index={index} onClick={() => togglePlay(index)}>
               
-              {/* HTML5 Video Element */}
+              {/* HTML5 Video Element with internal video sources */}
               <video
                 ref={el => videoRefs.current[index] = el}
-                src={videoSrc}
-                poster={reel.poster}
                 className={`reel-video ${isPlaying ? 'playing-video-zoom' : ''}`}
                 autoPlay
                 loop
                 muted={isMuted}
                 playsInline
-                onError={() => {
-                  console.warn(`Video load notice for reel ${reel.id}, using fallback stream`);
-                  setVideoErrorMap(prev => ({ ...prev, [index]: true }));
-                }}
-              />
+                poster={reel.poster}
+              >
+                <source src={primaryUrl} type="video/mp4" />
+                <source src={reel.videoUrl} type="video/mp4" />
+              </video>
 
               {/* Dynamic Live Food Canvas Motion Overlay */}
-              <LiveFoodCanvas poster={reel.poster} isPlaying={isPlaying} />
+              <LiveFoodCanvas isPlaying={isPlaying} />
 
               {/* Mute / Tap to Play Indicator Banner */}
               {isMuted && isPlaying && (

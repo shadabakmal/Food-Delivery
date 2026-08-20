@@ -21,6 +21,7 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 app.use('/images', express.static('uploads'));
+app.use('/videos', express.static('uploads/videos'));
 
 //Db connection
 connectDB();
