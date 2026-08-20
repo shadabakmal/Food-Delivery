@@ -9,7 +9,7 @@ export const reelsData = [
     likes: 14200,
     shares: 2300,
     description: "Crisp organic garden greens tossed with avocado, cherry tomatoes, and zesty lemon vinaigrette! 🌿✨",
-    videoUrl: "/videos/salad.mp4",
+    videoUrl: "https://res.cloudinary.com/djbq49p7b/video/upload/v1787251028/Green_salad.mp4",
     poster: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
     tags: ["Healthy", "Fresh", "Salad", "Organic"]
   },
