@@ -9,20 +9,22 @@ import LoginPopup from './components/LoginPopup/LoginPopup';
 import Verify from './pages/verify/Verify';
 import MyOrders from './pages/MyOrders/MyOrders';
 import TrackOrder from './pages/TrackOrder/TrackOrder';
+import FoodReels from './pages/FoodReels/FoodReels';
 import ItemAddedBar from './components/ItemAddedBar/ItemAddedBar';
 
 export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const location = useLocation();
   const isCheckoutPage = location.pathname === '/cart' || location.pathname === '/order';
+  const isReelsPage = location.pathname === '/reels';
 
   return (
     <>
       {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
 
       <div className='app'>
-        {/* Hide main Navbar on Checkout page as requested */}
-        {!isCheckoutPage && <Navbar setShowLogin={setShowLogin} />}
+        {/* Hide main Navbar on Checkout and Reels pages */}
+        {!isCheckoutPage && !isReelsPage && <Navbar setShowLogin={setShowLogin} />}
 
         <Routes>
           <Route path='/' element={<Home />} />
@@ -31,12 +33,13 @@ export default function App() {
           <Route path='/verify' element={<Verify />} />
           <Route path='/myorders' element={<MyOrders />} />
           <Route path='/track/:orderId' element={<TrackOrder />} />
+          <Route path='/reels' element={<FoodReels />} />
         </Routes>
       </div>
 
-      {/* Hide sticky item added bar on checkout page */}
-      {!isCheckoutPage && <ItemAddedBar />}
-      {!isCheckoutPage && <Footer />}
+      {/* Hide sticky item added bar & footer on checkout and reels pages */}
+      {!isCheckoutPage && !isReelsPage && <ItemAddedBar />}
+      {!isCheckoutPage && !isReelsPage && <Footer />}
     </>
   );
 }

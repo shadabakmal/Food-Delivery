@@ -58,6 +58,11 @@ function Navbar({ setShowLogin }) {
             </Link>
           </li>
           <li>
+            <Link to='/reels' onClick={() => setMenu("reels")} className={`reels-nav-link ${menu === "reels" ? "active" : ""}`}>
+              🎬 Reels <span className="reels-hot-badge">HOT</span>
+            </Link>
+          </li>
+          <li>
             <a href="#explore-menu" onClick={() => setMenu("menu")} className={menu === "menu" ? "active" : ""}>
               Menu
             </a>

@@ -1,0 +1,72 @@
+export const reelsData = [
+  {
+    id: "reel_1",
+    foodId: "1",
+    title: "Fresh Harvest Green Salad 🥗",
+    restaurant: "Green Gourmet Co.",
+    price: 189,
+    rating: 4.8,
+    likes: 14200,
+    shares: 2300,
+    description: "Crisp organic garden greens tossed with avocado, cherry tomatoes, and zesty lemon vinaigrette! 🌿✨",
+    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-fresh-salad-ingredients-being-tossed-42861-large.mp4",
+    poster: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
+    tags: ["Healthy", "Fresh", "Salad", "Organic"]
+  },
+  {
+    id: "reel_2",
+    foodId: "5",
+    title: "Sizzling Lasagna Rolls 🧀🍝",
+    restaurant: "Italiano Bistro",
+    price: 261,
+    rating: 4.9,
+    likes: 38900,
+    shares: 8900,
+    description: "Extra cheesy baked lasagna rollups stuffed with ricotta, fresh basil, and rich marinara sauce! 🔥",
+    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-cutting-a-piece-of-pizza-with-cheese-pull-42860-large.mp4",
+    poster: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80",
+    tags: ["Cheesy", "Italian", "Pasta", "BestSeller"]
+  },
+  {
+    id: "reel_3",
+    foodId: "9",
+    title: "Classic Creamy Ripple Ice Cream 🍦🍨",
+    restaurant: "Sweet Crave Desserts",
+    price: 140,
+    rating: 4.7,
+    likes: 27500,
+    shares: 4100,
+    description: "Hand-crafted vanilla ice cream topped with rich chocolate fudge drizzle and toasted almonds. 🍫✨",
+    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-hands-adding-toppings-to-an-ice-cream-cone-42858-large.mp4",
+    poster: "https://images.unsplash.com/photo-1567206563064-6f60f4078b57?auto=format&fit=crop&w=600&q=80",
+    tags: ["Dessert", "IceCream", "Chocolate"]
+  },
+  {
+    id: "reel_4",
+    foodId: "17",
+    title: "Loaded Cheese Gourmet Burger 🍔🔥",
+    restaurant: "The Burger Club",
+    price: 299,
+    rating: 4.9,
+    likes: 54100,
+    shares: 12400,
+    description: "Double patty grilled beef burger dripping with cheddar cheese, caramelized onions, and secret sauce! 🤤",
+    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-close-up-of-a-delicious-burger-42859-large.mp4",
+    poster: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80",
+    tags: ["Burger", "Juicy", "MustTry"]
+  },
+  {
+    id: "reel_5",
+    foodId: "25",
+    title: "Authentic Cheese Garlic Pizza 🍕✨",
+    restaurant: "Pizza Cravers",
+    price: 349,
+    rating: 4.8,
+    likes: 42300,
+    shares: 9800,
+    description: "Wood-fired crust with molten mozzarella pull that stretches to infinity! 🤤🔥",
+    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-chef-preparing-a-pizza-in-a-restaurant-kitchen-42862-large.mp4",
+    poster: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80",
+    tags: ["Pizza", "CheesePull", "WoodFired"]
+  }
+];
