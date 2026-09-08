@@ -7,7 +7,7 @@ export const connectDB = async () => {
     return;
   }
 
-  const mongoUri = process.env.MONGO_URI || "mongodb+srv://shadabakmal:shadab786@cluster0.i4gjx32.mongodb.net/FoodDelivery";
+  const mongoUri = process.env.MONGO_URI;
 
   try {
     const db = await mongoose.connect(mongoUri, {
