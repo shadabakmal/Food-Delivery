@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const authMiddleware = (req, res, next) => {
-  // Fail loudly at request time if the secret was never configured.
   if (!JWT_SECRET) {
     console.error("JWT_SECRET is not set in environment variables.");
     return res.status(500).json({ success: false, message: "Server misconfiguration" });
@@ -13,6 +12,7 @@ const authMiddleware = (req, res, next) => {
 
   if (!authHeader) {
     req.userId = null;
+    req.userRole = null;
     req.isGuest = true;
     return next();
   }
@@ -24,10 +24,10 @@ const authMiddleware = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.userId = decoded.id;
+    req.userRole = decoded.role || "user"; // fallback for tokens issued before role support
     req.isGuest = false;
     next();
   } catch (error) {
-    // Token was provided but is invalid/expired -> reject.
     console.warn("JWT verification failed:", error.message);
     return res.status(401).json({ success: false, message: "Invalid or expired token. Please log in again." });
   }
