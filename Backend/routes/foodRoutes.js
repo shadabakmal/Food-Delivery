@@ -1,30 +1,28 @@
 import express from 'express'
 import multer from 'multer'
 import { addFood, listFood, removeFood } from '../controllers/foodControllers.js';
- const foodRouter = express.Router();
+import authMiddleware from '../middleware/auth.js';
+import isAdmin from '../middleware/isAdmin.js';
 import path from "path";
 
- //Image Storage Engine
- const storage = multer.diskStorage({
-    destination: (req,file,cb)=>{
-        cb(null,'./uploads')
+const foodRouter = express.Router();
+
+// Image Storage Engine
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads')
     },
     filename: (req, file, cb) => {
-         cb(null, `${Date.now()}-${file.originalname}`)
-        }
- })
- const upload = multer({storage:storage})
+        cb(null, `${Date.now()}-${file.originalname}`)
+    }
+})
+const upload = multer({ storage: storage })
 
-foodRouter.post("/add", upload.single("image"),addFood, async(req,res)=>{
-    console.log(req.file)
-});
-foodRouter.get('/list',listFood)
-foodRouter.post("/remove",removeFood)
+// Public — anyone can browse the menu
+foodRouter.get('/list', listFood);
 
+// Admin only — menu management
+foodRouter.post("/add", authMiddleware, isAdmin, upload.single("image"), addFood);
+foodRouter.post("/remove", authMiddleware, isAdmin, removeFood);
 
-
-
-
-
-
- export default foodRouter
+export default foodRouter
